@@ -1,0 +1,230 @@
+<template id="captions-template" data-composition-id="captions" data-width="1920" data-height="1080">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+
+<style data-brand-tokens>
+      @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: block; }
+      @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: block; }
+      @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: block; }
+      @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: block; }
+      @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_900.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: block; }
+      :root {
+      --ink-black: #111111;
+      --ink-black-alt: #1A1A18;
+      --fire-orange: #E85D26;
+      --cream: #F0ECE5;
+      --cream-muted: #888880;
+      --cream-hint: #505048;
+      --border-dark: #282826;
+      --ink-on-orange-muted: rgba(17,17,17,0.75);
+      --ink-on-orange-hint: rgba(17,17,17,0.55);
+      --ink-on-orange-faint: rgba(17,17,17,0.40);
+      --ink-on-orange-border: rgba(17,17,17,0.20);
+      --cap-ink: #111111;
+      --cap-canvas: #F0ECE5;
+      --cap-accent: #E85D26;
+      --cap-accent-2: #888880;
+      --font-display: "Barlow", system-ui, serif;
+      --font-body: "Barlow", "Noto Sans JP", system-ui, sans-serif;
+      --cap-band-top: 900px;
+      --cap-band-height: 180px;
+      }
+    </style>
+
+<style>
+  #captions-root {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .caption-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
+  /* the keep-out band, from captionBand(H) — frame content stays above it */
+  .caption-stage {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--cap-band-top, 900px);
+    height: var(--cap-band-height, 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .caption-group {
+    /* every group is absolutely stacked over the SAME band — exactly one shown at a
+       time via opacity. Must be absolute: in-flow groups would lay out side-by-side. */
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  /* THE ink-black plate — single 1px fire-orange hairline (broadside's lone accent),
+     SHARP corners (0 radius), NO shadow (the plane is flat) */
+  .caption-pill {
+    max-width: 80%;
+    padding: 18px 44px 22px;
+    background: var(--cap-ink, #111111);
+    border: 1px solid var(--cap-accent, #e85d26);
+    border-radius: 0;
+  }
+  .caption-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.04em 0.3em;
+    font-family: "Barlow", "Noto Sans JP", system-ui, sans-serif;
+    font-weight: 900;
+    font-size: clamp(38px, 4.2vw, 56px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    text-transform: lowercase;
+  }
+
+  /* upcoming — faint cream, no block (massive lowercase Barlow 900 as graphic primitive) */
+  .caption-word {
+    display: inline-block;
+    padding: 0 0.08em;
+    color: color-mix(in srgb, var(--cap-canvas, #f0ece5) 42%, var(--cap-ink, #111111));
+  }
+  /* current word — THE register flip: a hard flat fire-orange block (box-shadow spread =
+     a sharp rectangle w/o layout shift; no blur), ink reading on top — the lone accent */
+  .caption-word.is-active {
+    color: var(--cap-ink, #111111);
+    background: var(--cap-accent, #e85d26);
+    box-shadow: 0 0 0 0.06em var(--cap-accent, #e85d26);
+  }
+  /* already spoken — solid cream, the orange block cleared */
+  .caption-word.is-spoken {
+    color: var(--cap-canvas, #f0ece5);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* optional per-word accents (dormant until a word-classer tags them) */
+  /* brand / key term — fire-orange ink, the cream-on-ink register's only inflection */
+  .caption-word.cap-brand {
+    color: var(--cap-accent, #e85d26);
+  }
+  /* numerals / data — the IBM Plex Mono chrome voice, uppercase + tracked, recessed */
+  .caption-word.cap-num {
+    font-family: "Barlow", ui-monospace, monospace;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--cap-canvas, #f0ece5) 72%, var(--cap-ink, #111111));
+  }
+  /* emphasis — a fire-orange hairline underline (no second hue; the lone accent again) */
+  .caption-word.cap-cta {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--cap-accent-2, #e85d26);
+    text-underline-offset: 0.1em;
+  }
+
+  @media (max-aspect-ratio: 9/16) {
+    .caption-pill {
+      max-width: 92%;
+    }
+    .caption-line {
+      font-size: clamp(32px, 5.2vw, 46px);
+    }
+  }
+</style>
+
+<div
+  id="captions-root"
+  data-composition-id="captions"
+  data-timeline-locked
+  data-start="0"
+  data-duration="132.427"
+  data-fps="30"
+  data-width="1920"
+  data-height="1080"
+>
+  <div class="caption-layer" aria-hidden="true">
+    <div id="caption-stage" class="caption-stage"></div>
+  </div>
+</div>
+
+<script>
+  // captions.mjs injects the engine's scene-aware groups + real duration here.
+  var GROUPS = [{"id":"caption-group-0","frame":1,"start":0.05,"end":6.974,"text":"ゲームの画面の印象を決めるのは、 モデルでもテクスチャでもない。 光だ。","words":[{"id":"caption-word-0-0","text":"ゲームの画面の印象を決めるのは、","start":0.05,"end":3.252},{"id":"caption-word-0-1","text":"モデルでもテクスチャでもない。","start":3.252,"end":6.254},{"id":"caption-word-0-2","text":"光だ。","start":6.254,"end":6.854}]},{"id":"caption-group-1","frame":2,"start":7.004,"end":14.362,"text":"リアルタイムレンダリングの光源は、 実質この3つ。 点光源、 ディレクショナルライト、","words":[{"id":"caption-word-1-0","text":"リアルタイムレンダリングの光源は、","start":7.004,"end":10.131},{"id":"caption-word-1-1","text":"実質この3つ。","start":10.131,"end":11.419},{"id":"caption-word-1-2","text":"点光源、","start":11.419,"end":12.155},{"id":"caption-word-1-3","text":"ディレクショナルライト、","start":12.155,"end":14.362}]},{"id":"caption-group-2","frame":2,"start":14.362,"end":18.529,"text":"そして環境光。 名前だけ、 まず覚えてしまおう。","words":[{"id":"caption-word-2-0","text":"そして環境光。","start":14.362,"end":15.65},{"id":"caption-word-2-1","text":"名前だけ、","start":15.65,"end":16.569},{"id":"caption-word-2-2","text":"まず覚えてしまおう。","start":16.569,"end":18.409}]},{"id":"caption-group-3","frame":3,"start":18.559,"end":24.201,"text":"点光源は、 一点から全方向に光を放つ。 たいまつ、 ランプ、","words":[{"id":"caption-word-3-0","text":"点光源は、","start":18.559,"end":19.604},{"id":"caption-word-3-1","text":"一点から全方向に光を放つ。","start":19.604,"end":22.32},{"id":"caption-word-3-2","text":"たいまつ、","start":22.32,"end":23.365},{"id":"caption-word-3-3","text":"ランプ、","start":23.365,"end":24.201}]},{"id":"caption-group-4","frame":3,"start":24.201,"end":32.768,"text":"マズルフラッシュ。 特徴は、 距離とともに急激に暗くなること。 拾えるアイテムの光など、","words":[{"id":"caption-word-4-0","text":"マズルフラッシュ。","start":24.201,"end":26.082},{"id":"caption-word-4-1","text":"特徴は、","start":26.082,"end":26.917},{"id":"caption-word-4-2","text":"距離とともに急激に暗くなること。","start":26.917,"end":30.261},{"id":"caption-word-4-3","text":"拾えるアイテムの光など、","start":30.261,"end":32.768}]},{"id":"caption-group-5","frame":3,"start":32.768,"end":35.187,"text":"視線誘導にも使われる。","words":[{"id":"caption-word-5-0","text":"視線誘導にも使われる。","start":32.768,"end":35.067}]},{"id":"caption-group-6","frame":4,"start":35.217,"end":45.928,"text":"物理では逆二乗則。 距離が2倍なら、 明るさは4分の1。 エンジンでは係数付きの減衰式でカーブを調整し、","words":[{"id":"caption-word-6-0","text":"物理では逆二乗則。","start":35.217,"end":37.184},{"id":"caption-word-6-1","text":"距離が2倍なら、","start":37.184,"end":38.933},{"id":"caption-word-6-2","text":"明るさは4分の1。","start":38.933,"end":40.9},{"id":"caption-word-6-3","text":"エンジンでは係数付きの減衰式でカーブを調整し、","start":40.9,"end":45.928}]},{"id":"caption-group-7","frame":4,"start":45.928,"end":49.327,"text":"減衰半径の外は計算を打ち切る。","words":[{"id":"caption-word-7-0","text":"減衰半径の外は計算を打ち切る。","start":45.928,"end":49.207}]},{"id":"caption-group-8","frame":5,"start":49.357,"end":57.605,"text":"ディレクショナルライトは、 無限遠から降り注ぐ平行光線。 太陽や月の抽象化だ。 位置は持たず、","words":[{"id":"caption-word-8-0","text":"ディレクショナルライトは、","start":49.357,"end":51.794},{"id":"caption-word-8-1","text":"無限遠から降り注ぐ平行光線。","start":51.794,"end":54.418},{"id":"caption-word-8-2","text":"太陽や月の抽象化だ。","start":54.418,"end":56.293},{"id":"caption-word-8-3","text":"位置は持たず、","start":56.293,"end":57.605}]},{"id":"caption-group-9","frame":5,"start":57.605,"end":64.474,"text":"方向だけを持つ。 だから減衰しない。 屋外のシーンでは、 これが主光源になる。","words":[{"id":"caption-word-9-0","text":"方向だけを持つ。","start":57.605,"end":59.105},{"id":"caption-word-9-1","text":"だから減衰しない。","start":59.105,"end":60.792},{"id":"caption-word-9-2","text":"屋外のシーンでは、","start":60.792,"end":62.479},{"id":"caption-word-9-3","text":"これが主光源になる。","start":62.479,"end":64.354}]},{"id":"caption-group-10","frame":6,"start":64.504,"end":71.487,"text":"方向と色温度を変えるだけで、 時間帯が作れる。 真上の白は正午、 低いオレンジは夕暮れ。","words":[{"id":"caption-word-10-0","text":"方向と色温度を変えるだけで、","start":64.504,"end":66.888},{"id":"caption-word-10-1","text":"時間帯が作れる。","start":66.888,"end":68.251},{"id":"caption-word-10-2","text":"真上の白は正午、","start":68.251,"end":69.613},{"id":"caption-word-10-3","text":"低いオレンジは夕暮れ。","start":69.613,"end":71.487}]},{"id":"caption-group-11","frame":6,"start":71.487,"end":80.122,"text":"影はカスケードシャドウマップで、 近くほど高解像度に。 タイムオブデイの基本は、 この2つのパラメータだ。","words":[{"id":"caption-word-11-0","text":"影はカスケードシャドウマップで、","start":71.487,"end":74.212},{"id":"caption-word-11-1","text":"近くほど高解像度に。","start":74.212,"end":75.915},{"id":"caption-word-11-2","text":"タイムオブデイの基本は、","start":75.915,"end":77.958},{"id":"caption-word-11-3","text":"この2つのパラメータだ。","start":77.958,"end":80.002}]},{"id":"caption-group-12","frame":7,"start":80.152,"end":88.751,"text":"環境光は、 空全体からの回り込みを近似する光。 特定の光源を持たない。 一番単純な形は、","words":[{"id":"caption-word-12-0","text":"環境光は、","start":80.152,"end":81.201},{"id":"caption-word-12-1","text":"空全体からの回り込みを近似する光。","start":81.201,"end":84.766},{"id":"caption-word-12-2","text":"特定の光源を持たない。","start":84.766,"end":87.073},{"id":"caption-word-12-3","text":"一番単純な形は、","start":87.073,"end":88.751}]},{"id":"caption-group-13","frame":7,"start":88.751,"end":96.421,"text":"空の色を一定量、 全ピクセルに足すこと。 この光が、 影の中を真っ黒にしない。","words":[{"id":"caption-word-13-0","text":"空の色を一定量、","start":88.751,"end":90.429},{"id":"caption-word-13-1","text":"全ピクセルに足すこと。","start":90.429,"end":92.736},{"id":"caption-word-13-2","text":"この光が、","start":92.736,"end":93.784},{"id":"caption-word-13-3","text":"影の中を真っ黒にしない。","start":93.784,"end":96.301}]},{"id":"caption-group-14","frame":8,"start":96.451,"end":109.136,"text":"現代のゲームはイメージベースドライティング。 空の画像そのものを光源にする。 さらにアンビエントオクルージョンで、 隙間や凹みを暗くして立体感を出す。","words":[{"id":"caption-word-14-0","text":"現代のゲームはイメージベースドライティング。","start":96.451,"end":100.29},{"id":"caption-word-14-1","text":"空の画像そのものを光源にする。","start":100.29,"end":102.908},{"id":"caption-word-14-2","text":"さらにアンビエントオクルージョンで、","start":102.908,"end":106.049},{"id":"caption-word-14-3","text":"隙間や凹みを暗くして立体感を出す。","start":106.049,"end":109.016}]},{"id":"caption-group-15","frame":9,"start":109.166,"end":116.8,"text":"役割分担はこうだ。 ディレクショナルが主光源。 点光源がアクセント。 環境光がベース。","words":[{"id":"caption-word-15-0","text":"役割分担はこうだ。","start":109.166,"end":110.884},{"id":"caption-word-15-1","text":"ディレクショナルが主光源。","start":110.884,"end":113.365},{"id":"caption-word-15-2","text":"点光源がアクセント。","start":113.365,"end":115.273},{"id":"caption-word-15-3","text":"環境光がベース。","start":115.273,"end":116.8}]},{"id":"caption-group-16","frame":9,"start":116.8,"end":120.737,"text":"3つのバランスが、 画作りの出発点になる。","words":[{"id":"caption-word-16-0","text":"3つのバランスが、","start":116.8,"end":118.518},{"id":"caption-word-16-1","text":"画作りの出発点になる。","start":118.518,"end":120.617}]},{"id":"caption-group-17","frame":10,"start":120.767,"end":132.447,"text":"次にシーンを開いたら、 まず光を3つに分けて見てみよう。 それだけで、 シーンの見方が変わるはずだ。","words":[{"id":"caption-word-17-0","text":"次にシーンを開いたら、","start":120.767,"end":123.473},{"id":"caption-word-17-1","text":"まず光を3つに分けて見てみよう。","start":123.473,"end":127.408},{"id":"caption-word-17-2","text":"それだけで、","start":127.408,"end":128.884},{"id":"caption-word-17-3","text":"シーンの見方が変わるはずだ。","start":128.884,"end":132.327}]}];
+  var DURATION = 132.427;
+
+  (function () {
+    var stage = document.getElementById("caption-stage");
+
+    // build DOM: one .caption-group per group, .caption-word per word
+    GROUPS.forEach(function (group, g) {
+      var groupEl = document.createElement("div");
+      groupEl.className = "caption-group";
+      groupEl.id = "caption-group-" + g;
+      var pill = document.createElement("div");
+      pill.className = "caption-pill";
+      var line = document.createElement("div");
+      line.className = "caption-line";
+      (group.words || []).forEach(function (w, i) {
+        var span = document.createElement("span");
+        span.className = "caption-word";
+        span.id = "caption-word-" + g + "-" + i;
+        span.textContent = String(w.text);
+        line.appendChild(span);
+      });
+      pill.appendChild(line);
+      groupEl.appendChild(pill);
+      stage.appendChild(groupEl);
+    });
+
+    window.__timelines = window.__timelines || {};
+    var tl = gsap.timeline({ paused: true });
+
+    GROUPS.forEach(function (group, g) {
+      var groupEl = document.getElementById("caption-group-" + g);
+      var words = group.words || [];
+      var next = GROUPS[g + 1];
+      var isLast = g === GROUPS.length - 1;
+      var start = Math.max(0, Number(group.start));
+      var end = isLast ? DURATION : Math.min(Number(next.start), Number(group.end) + 0.3);
+      if (end <= start) end = start + 0.01;
+
+      // group on/off — exactly one group visible at a time
+      tl.set(groupEl, { opacity: 1 }, start);
+      tl.set(groupEl, { opacity: 0 }, end);
+
+      // 3-state karaoke via className SETS — seek-safe (gsap.set applies on the
+      // engine's frame-by-frame seek; .call callbacks would NOT fire).
+      words.forEach(function (w, i) {
+        var el = document.getElementById("caption-word-" + g + "-" + i);
+        var at = Math.max(start, Number(w.start));
+        tl.set(el, { className: "caption-word" }, start); // upcoming (also resets on reverse-seek)
+        tl.set(el, { className: "caption-word is-active" }, at); // current
+        tl.fromTo(el, { scale: 0.92 }, { scale: 1, duration: 0.1, ease: "power3.out" }, at);
+        if (i + 1 < words.length) {
+          var nextAt = Math.max(start, Number(words[i + 1].start));
+          tl.set(el, { className: "caption-word is-spoken" }, nextAt); // demote when next activates
+        }
+      });
+      if (words.length) {
+        var lastEl = document.getElementById("caption-word-" + g + "-" + (words.length - 1));
+        var lastSpoken = Math.min(end, Number(words[words.length - 1].end) + 0.1);
+        tl.set(lastEl, { className: "caption-word is-spoken" }, lastSpoken);
+      }
+    });
+
+    // full-span anchor so the sub-comp timeline spans the whole video
+    tl.to({}, { duration: DURATION }, 0);
+    window.__timelines["captions"] = tl;
+  })();
+</script>
+
+<style>
+  .caption-line { line-height: 1.1 !important; }
+</style>
+</template>

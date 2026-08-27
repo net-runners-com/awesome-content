@@ -1,0 +1,62 @@
+<meta charset="utf-8">
+<title>Particle Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@800;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root { --ink: #0B1230; --paper: #F7F4EC; --dim: #9AA3C7; --line: rgba(247,244,236,.18); --panel: rgba(11,18,48,.5); }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif; overflow: hidden; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .center {
+    position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; text-align: center;
+  }
+  .tag {
+    display: inline-block; padding: 8px 22px; border: 2px solid var(--paper);
+    font: 500 clamp(14px, 1.6vw, 22px)/1 "Zen Kaku Gothic New", sans-serif; letter-spacing: .08em;
+    margin-bottom: 18px; backdrop-filter: blur(2px);
+  }
+  h1 {
+    margin: 0; font: 900 clamp(48px, 9vw, 132px)/0.95 "Big Shoulders Stencil Display", "Syne", sans-serif;
+    letter-spacing: .06em; text-transform: uppercase; text-wrap: balance;
+    text-shadow: 0 0 24px rgba(247,244,236,.35), 0 0 60px rgba(120,140,255,.25);
+  }
+  h1 span { display: block; }
+  .hud { position: fixed; left: 24px; right: 24px; bottom: 22px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    appearance: none; cursor: pointer; border: 1px solid var(--line); color: var(--paper);
+    background: var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    font: 500 13px/1 "Zen Kaku Gothic New", sans-serif; padding: 11px 16px; border-radius: 999px;
+    transition: border-color .15s, background .15s, transform .15s;
+  }
+  .btn:hover { transform: translateY(-1px); border-color: rgba(247,244,236,.5); }
+  .btn.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .btn.burst { border-color: #FF4F9A; color: #FFB3D1; }
+  .btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  label.slider { display: flex; align-items: center; gap: 8px; font: 400 11px "DM Mono", monospace; color: var(--dim); letter-spacing: .06em; }
+  input[type=range] { width: 110px; accent-color: #FF4F9A; }
+  .meta { font: 400 11px/1.6 "DM Mono", monospace; color: var(--dim); text-align: right; letter-spacing: .04em; }
+  .meta b { color: var(--paper); font-weight: 500; }
+  </style>
+<canvas id="c"></canvas>
+<div class="center">
+  <div>
+    <div class="tag">three.js ではじめる</div>
+    <h1><span>Particle</span><span>Animation</span></h1>
+  </div>
+</div>
+<div class="hud">
+  <div class="group">
+    <button class="btn on" data-shape="0">リング</button>
+    <button class="btn" data-shape="1">ギャラクシー</button>
+    <button class="btn" data-shape="2">シェル</button>
+    <button class="btn burst" id="burst">バースト</button>
+    <label class="slider">HUE <input id="hue" type="range" min="0" max="1" step="0.01" value="0"></label>
+    <label class="slider">SIZE <input id="size" type="range" min="0.4" max="2.2" step="0.05" value="1"></label>
+  </div>
+  <div class="meta"><b id="count">—</b> particles · 1 draw call · GPU vertex shader<br>shape: <b id="shape-name">リング</b> · マウスで視差</div>
+</div>
+<script>
+/*__BUNDLE__*/
+</script>

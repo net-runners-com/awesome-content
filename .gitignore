@@ -1,0 +1,38 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# 3rd-party clones — third-party/setup.sh で復元
+/opencut-classic/
+/mv-toolchain/ACE-Step/
+/mv-toolchain/davinci-resolve-mcp/
+/mv-toolchain/live2d-official/
+/mv-toolchain/reference/
+
+# 大容量 CC0 アセット（setup.sh でDL）
+/mv-toolchain/assets-cc0/skies/*.jpg
+
+# deps / venv
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.egg-info/
+.turbo/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# build intermediates / renders（再生成可）
+dist/
+out/
+renders/
+snapshots/
+dist-*.js
+*.log
+
+# 未使用（Kokoro 却下済み）
+/videos/game-lighting-explained/assets/voice-kokoro-backup/

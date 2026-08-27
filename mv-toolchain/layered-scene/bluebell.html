@@ -1,0 +1,180 @@
+<meta charset="utf-8">
+<title>Bluebell Dawn</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root { --ink: #10101E; --paper: #EFEAF6; --dim: #B7ADC9; --line: rgba(239,234,246,.18); --accent: #B39CF0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif; overflow: hidden; }
+  .stage { position: relative; width: 100%; height: 100vh; min-height: 480px; overflow: hidden; background: #171426; }
+  .layer { position: absolute; inset: -5% -6%; transition: transform .9s cubic-bezier(.2,.8,.2,1); }
+  .layer .tag { position: absolute; left: 101%; top: 6%; font: 500 11px "DM Mono", monospace; letter-spacing: .12em; color: var(--paper); background: rgba(16,16,30,.85); border: 1px solid var(--line); padding: 6px 10px; border-radius: 8px; opacity: 0; transition: opacity .4s; pointer-events: none; white-space: nowrap; transform: scale(2.6); transform-origin: left top; }
+  .stage.exploded { background: #08060f; }
+  .stage.exploded .layer { inset: 0; transform-origin: 0 0; transform: translate(calc(4% + var(--z) * 2.7%), calc(56% - var(--z) * 3.7%)) skewY(-10deg) scale(.30) !important; box-shadow: 0 30px 60px -20px rgba(0,0,0,.85); outline: 2px solid rgba(239,234,246,.32); background-color: rgba(16,16,30,.5); }
+  .stage.exploded .layer .tag { opacity: 1; }
+
+  #bg        { z-index: 1;  --z: 1; }
+  #bgdepth   { z-index: 2;  --z: 2; }
+  #farmist   { z-index: 3;  --z: 3; }
+  #rays      { z-index: 4;  --z: 4; }
+  #fartrunks { z-index: 5;  --z: 5; }
+  #flowmid   { z-index: 6;  --z: 6; }
+  #trunks    { z-index: 7;  --z: 7; }
+  #haze      { z-index: 8;  --z: 8; }
+  #grass     { z-index: 9;  --z: 9; }
+  #komorebi  { z-index: 10; --z: 10; }
+  #grade     { z-index: 11; --z: 11; }
+
+  #bg .img { position: absolute; inset: 0; background: url("img-bluebell/bg.png") center / cover no-repeat; animation: breathe 30s ease-in-out infinite alternate; }
+  @keyframes breathe { from { transform: scale(1.03); } to { transform: scale(1.07) translate(-1%, .5%); } }
+  #bgdepth .d1 { position: absolute; inset: 0; background: radial-gradient(90% 70% at 10% 12%, rgba(255,240,200,.32), transparent 55%); }
+  #bgdepth .d2 { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(30,20,60,.35) 100%); }
+
+  /* 奥の朝もや帯 */
+  #farmist .m { position: absolute; left: -12%; right: -12%; height: 34%; top: 34%; background: linear-gradient(180deg, transparent, rgba(226,222,250,.42) 45%, transparent); filter: blur(18px); animation: drift2 34s ease-in-out infinite alternate; }
+  @keyframes drift2 { to { transform: translateX(-5vw) translateY(1vh); } }
+
+  /* 光芒シェーダーcanvas（screen加算） */
+  #rays canvas, #komorebi canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* 奥の幹（ぼかし・暗く・遠景） */
+  #fartrunks .img { position: absolute; right: 4%; bottom: 6%; width: 34%; height: 74%; background: url("img-bluebell/trunks.png") right bottom / auto 100% no-repeat; filter: blur(4px) brightness(.5) saturate(.8); opacity: .55; transform: scaleX(-1); }
+
+  /* 中景のブルーベル帯（CSSの紫ヘイズ・奥行き。容量削減のため画像は使わない） */
+  #flowmid .img { position: absolute; left: -8%; right: -8%; bottom: 24%; height: 24%; background: radial-gradient(120% 80% at 50% 100%, rgba(120,96,210,.5), rgba(78,58,150,.28) 45%, transparent 75%); filter: blur(8px); opacity: .85; }
+
+  /* 手前の幹（AI生成カットアウト・左端） */
+  #trunks .img { position: absolute; left: -8%; bottom: 0; width: 40%; height: 116%; background: url("img-bluebell/trunks.png") left bottom / auto 100% no-repeat; filter: brightness(.82) contrast(1.05); }
+  /* もや */
+  #haze .h { position: absolute; left: -10%; right: -10%; height: 40%; bottom: 30%; background: radial-gradient(60% 100% at 30% 50%, rgba(230,225,255,.45), transparent 70%); filter: blur(24px); animation: drift 22s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translateX(4vw); } }
+
+  /* 手前の草メッシュ（three.js インスタンシング）— 透明canvasで下のシーンに重ねる */
+  #grass canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #grass .soil { position: absolute; left: -6%; right: -6%; bottom: -4%; height: 22%; background: linear-gradient(180deg, transparent, rgba(28,20,52,.55) 60%, rgba(16,12,34,.8)); pointer-events: none; }
+
+  #grade .vig { position: absolute; inset: 0; background: radial-gradient(120% 100% at 50% 42%, transparent 54%, rgba(10,6,24,.62)); }
+  #grade .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(150,120,255,.06), transparent 40%, rgba(60,40,110,.14)); }
+  #grade .grain { position: absolute; inset: 0; opacity: .05; background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMDAnIGhlaWdodD0nMzAwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nLjknIG51bU9jdGF2ZXM9JzInIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCglMjNuKScvPjwvc3ZnPg=="); }
+
+  .top { position: fixed; left: 24px; top: 20px; z-index: 100; pointer-events: none; }
+  .eyebrow { font: 500 11px "DM Mono", monospace; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  h1 { margin: 4px 0 0; font: 700 26px/1.1 "Zen Kaku Gothic New", sans-serif; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+  .hud { position: fixed; left: 24px; bottom: 22px; z-index: 100; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { appearance: none; cursor: pointer; border: 1px solid var(--line); color: var(--paper); background: rgba(16,16,30,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font: 700 12px/1 "Zen Kaku Gothic New", sans-serif; padding: 11px 15px; border-radius: 999px; transition: .15s; }
+  .btn.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .legend { position: fixed; right: 24px; bottom: 22px; z-index: 100; font: 400 10.5px/1.7 "DM Mono", monospace; color: var(--paper); text-align: right; text-shadow: 0 1px 8px rgba(0,0,0,.7); max-width: 48ch; }
+  .legend b { color: var(--accent); font-weight: 500; }
+</style>
+
+<div class="stage" id="stage">
+  <div class="layer" id="bg"><div class="img"></div><span class="tag">z 1 · 森の背景（AI生成・ゆっくり呼吸）</span></div>
+  <div class="layer" id="bgdepth"><div class="d1"></div><div class="d2"></div><span class="tag">z 2 · 朝日グロー / 奥の陰</span></div>
+  <div class="layer" id="farmist"><div class="m"></div><span class="tag">z 3 · 奥の朝もや帯</span></div>
+  <div class="layer" id="rays"><span class="tag">z 4 · 光芒シェーダー（GLSL・screen）</span></div>
+  <div class="layer" id="fartrunks"><div class="img"></div><span class="tag">z 5 · 奥の幹（ぼかし遠景）</span></div>
+  <div class="layer" id="flowmid"><div class="img"></div><span class="tag">z 6 · 中景ブルーベル帯（ぼかし）</span></div>
+  <div class="layer" id="trunks"><div class="img"></div><span class="tag">z 7 · 手前の幹（AIカットアウト）</span></div>
+  <div class="layer" id="haze"><div class="h"></div><span class="tag">z 8 · 朝もや（漂い）</span></div>
+  <div class="layer" id="grass"><canvas id="grassCv"></canvas><div class="soil"></div><span class="tag">z 9 · 手前の草メッシュ（three.js・9000本＋鐘花2600）</span></div>
+  <div class="layer" id="komorebi"><span class="tag">z 10 · 木漏れ日シェーダー（葉ゆれの斑・塵）</span></div>
+  <div class="layer" id="grade"><div class="tint"></div><div class="vig"></div><div class="grain"></div><span class="tag">z 11 · ビネット / グレイン</span></div>
+</div>
+
+<div class="top"><div class="eyebrow">Bluebell forest · AI parts × instanced grass × GLSL · 11 layers</div><h1>Bluebell Dawn</h1></div>
+<div class="hud">
+  <button class="btn on" id="komorebiBtn">木漏れ日</button>
+  <button class="btn on" id="raysBtn">光芒</button>
+  <button class="btn" id="explode">レイヤー分解</button>
+  <button class="btn on" id="parallax">視差 ON</button>
+</div>
+<div class="legend">背景・幹はChatGPT画像生成を11層に分解 · 手前は<b>インスタンシングの草メッシュ</b>（Unity風、9000本＋鐘花）が風で揺れる<br><b>光芒</b>と<b>木漏れ日</b>はGLSLシェーダーでscreen加算 · マウスで視差 · 分解でレイヤー構造</div>
+
+<script>/*__GRASS_BUNDLE__*/</script>
+<script>
+  const stage = document.getElementById('stage');
+  const layers = [...document.querySelectorAll('.layer')];
+
+  // ================= 草メッシュ（three.js） =================
+  let grassApi = null;
+  try { grassApi = window.__grass.initGrass(document.getElementById('grassCv')); } catch (e) { console.error('grass init', e); }
+
+  // ================= 全画面シェーダー（raw WebGL） =================
+  function makeGL(host) { const cv = document.createElement('canvas'); host.insertBefore(cv, host.firstChild); return { cv, gl: cv.getContext('webgl', { premultipliedAlpha: false, antialias: false }) }; }
+  function program(gl, frag) {
+    const vs = gl.createShader(gl.VERTEX_SHADER); gl.shaderSource(vs, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'); gl.compileShader(vs);
+    const fs = gl.createShader(gl.FRAGMENT_SHADER); gl.shaderSource(fs, frag); gl.compileShader(fs);
+    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(fs));
+    const pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr); gl.useProgram(pr);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0); return pr;
+  }
+  const NOISE = `
+    float hash(vec2 p){ p=fract(p*vec2(127.1,311.7)); p+=dot(p,p+19.19); return fract(p.x*p.y); }
+    float vnoise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
+    float fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<5;i++){ s+=a*vnoise(p); p=p*2.03+11.7; a*=.5;} return s; }`;
+  const raysFrag = `precision highp float; uniform vec2 uRes; uniform float uTime; uniform vec2 uSun; uniform float uOn; ${NOISE}
+    void main(){ vec2 uv=gl_FragCoord.xy/uRes; vec2 toSun=uSun-uv; float dist=length(toSun*vec2(uRes.x/uRes.y,1.));
+      float ang=atan(toSun.y,toSun.x);
+      float streak=fbm(vec2(ang*7.,dist*3.-uTime*0.04)); streak+=0.5*fbm(vec2(ang*15.+3.,dist*5.-uTime*0.09));
+      float shaft=pow(max(0.,1.-dist*0.62),2.2)*smoothstep(0.35,0.95,streak);
+      float glow=pow(max(0.,1.-dist*0.9),4.)*1.4; vec3 sun=vec3(1.,0.9,0.62);
+      vec3 col=sun*(shaft*0.55+glow)*uOn; gl_FragColor=vec4(col,clamp(max(col.r,max(col.g,col.b)),0.,1.)); }`;
+  const komFrag = `precision highp float; uniform vec2 uRes; uniform float uTime; uniform vec2 uSun; uniform vec2 uPar; uniform float uOn; ${NOISE}
+    void main(){ vec2 uv=gl_FragCoord.xy/uRes; vec3 col=vec3(0.);
+      vec2 dp=uv*vec2(uRes.x/uRes.y,1.)*5.+uPar*0.15;
+      float l1=fbm(dp+vec2(uTime*0.05,-uTime*0.03)); float l2=fbm(dp*1.7+vec2(-uTime*0.04,uTime*0.02)+5.);
+      float leaf=l1*0.6+l2*0.4; float dapple=smoothstep(0.62,0.82,leaf)*(0.6+0.4*sin(uTime*1.3+leaf*20.));
+      float lit=smoothstep(0.1,1.3,(1.-uv.y)*0.7+(1.-uv.x)*0.6);
+      col+=vec3(1.,0.93,0.66)*dapple*lit*0.7;
+      for(int k=0;k<3;k++){ float fk=float(k); float sc=22.+fk*16.; vec2 g=uv*vec2(uRes.x/uRes.y,1.)*sc;
+        g+=vec2(sin(uTime*0.1+fk)*0.4,-uTime*(0.05+fk*0.02)); vec2 cell=floor(g),f=fract(g);
+        vec2 rnd=vec2(hash(cell),hash(cell+3.7)); float d=length(f-rnd);
+        float tw=0.5+0.5*sin(uTime*2.+hash(cell)*30.); col+=vec3(1.,0.95,0.8)*smoothstep(0.12,0.,d)*tw*(0.35-fk*0.08)*lit; }
+      col*=uOn; gl_FragColor=vec4(col,clamp(max(col.r,max(col.g,col.b)),0.,1.)); }`;
+
+  const SUN = [0.085, 0.86];
+  const shaders = [];
+  function initShader(host, frag, extra) {
+    const { cv, gl } = makeGL(host); if (!gl) return; const pr = program(gl, frag);
+    const u = { res: gl.getUniformLocation(pr, 'uRes'), time: gl.getUniformLocation(pr, 'uTime'), sun: gl.getUniformLocation(pr, 'uSun'), on: gl.getUniformLocation(pr, 'uOn'), par: gl.getUniformLocation(pr, 'uPar') };
+    shaders.push({ cv, gl, pr, u, on: 1, extra });
+  }
+  initShader(document.getElementById('rays'), raysFrag);
+  initShader(document.getElementById('komorebi'), komFrag, true);
+
+  // ================= パララックス / 分解 =================
+  let parallax = true, tx = 0, ty = 0, cx = 0, cy = 0;
+  addEventListener('pointermove', (e) => { tx = (e.clientX / innerWidth - .5) * 2; ty = (e.clientY / innerHeight - .5) * 2; });
+  function resize() {
+    const dpr = Math.min(devicePixelRatio, 1.75);
+    for (const s of shaders) { const r = s.cv.getBoundingClientRect(); s.cv.width = Math.max(2, r.width * dpr); s.cv.height = Math.max(2, r.height * dpr); s.gl.viewport(0, 0, s.cv.width, s.cv.height); }
+    grassApi && grassApi.resize();
+  }
+  addEventListener('resize', resize); setTimeout(resize, 0);
+
+  const t0 = performance.now();
+  (function tick() {
+    const t = (performance.now() - t0) / 1000; cx += (tx - cx) * .04; cy += (ty - cy) * .04;
+    if (parallax && !stage.classList.contains('exploded')) {
+      for (const l of layers) { const z = Number(getComputedStyle(l).getPropertyValue('--z')) || 0; const k = (z - 4) / 9;
+        l.style.transform = `translate(${cx * k * 32}px, ${cy * k * 17}px) scale(${1 + Math.abs(k) * .02})`; }
+    }
+    for (const s of shaders) { s.gl.useProgram(s.pr); s.gl.uniform2f(s.u.res, s.cv.width, s.cv.height); s.gl.uniform1f(s.u.time, t);
+      s.gl.uniform2f(s.u.sun, SUN[0], SUN[1]); s.gl.uniform1f(s.u.on, s.on); if (s.extra) s.gl.uniform2f(s.u.par, cx, cy); s.gl.drawArrays(s.gl.TRIANGLES, 0, 3); }
+    requestAnimationFrame(tick);
+  })();
+
+  const raysSh = shaders[0], komSh = shaders[1];
+  document.getElementById('raysBtn').addEventListener('click', (e) => { raysSh.on = raysSh.on ? 0 : 1; e.target.classList.toggle('on', !!raysSh.on); });
+  document.getElementById('komorebiBtn').addEventListener('click', (e) => { komSh.on = komSh.on ? 0 : 1; e.target.classList.toggle('on', !!komSh.on); });
+  document.getElementById('explode').addEventListener('click', (e) => {
+    stage.classList.toggle('exploded'); e.target.classList.toggle('on', stage.classList.contains('exploded'));
+    if (stage.classList.contains('exploded')) layers.forEach((l) => (l.style.transform = '')); setTimeout(resize, 950);
+  });
+  document.getElementById('parallax').addEventListener('click', (e) => {
+    parallax = !parallax; e.target.classList.toggle('on', parallax); e.target.textContent = `視差 ${parallax ? 'ON' : 'OFF'}`;
+    if (!parallax) layers.forEach((l) => (l.style.transform = ''));
+  });
+</script>

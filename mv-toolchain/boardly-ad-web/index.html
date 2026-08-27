@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Boardly Ad</title>
+    <meta name="viewport" content="width=1280, height=720" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&family=Nunito:wght@800;900&display=swap" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #2A2038; }
+      .frame { position: fixed; left: 50%; top: 50%; width: 1280px; height: 720px; transform: translate(-50%, -50%) scale(var(--k, 1)); transform-origin: center; border-radius: 18px; overflow: hidden; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); }
+      .overlay { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(62,46,82,.55); backdrop-filter: blur(6px); cursor: pointer; }
+      .overlay.hidden { display: none; }
+      .play { width: 120px; height: 120px; border-radius: 50%; background: #D24E6C; border: 6px solid #F7F4EA; display: grid; place-items: center; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+      .play::after { content: ""; margin-left: 10px; border-left: 40px solid #F7F4EA; border-top: 24px solid transparent; border-bottom: 24px solid transparent; }
+      .hud { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; display: flex; gap: 10px; }
+      .hud button { appearance: none; cursor: pointer; border: 0; background: #F7F4EA; color: #3E2E52; font: 900 14px "Zen Maru Gothic", sans-serif; padding: 12px 20px; border-radius: 999px; }
+      .scene { visibility: hidden; }
+      body { font-family: "Zen Maru Gothic", sans-serif; color: #3E2E52; }
+      #root { position: relative; width: 1280px; height: 720px; overflow: hidden; }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .abs { position: absolute; }
+      /* ---- palette ---- */
+      .bg-cream { background: #E6E3D4; } .bg-pink { background: #D24E6C; } .bg-plum { background: #3E2E52; }
+      .blob { position: absolute; border-radius: 48% 52% 45% 55% / 55% 45% 55% 45%; }
+      .blob.pink { background: #D24E6C; } .blob.lav { background: #8B7BA8; } .blob.plum { background: #3E2E52; } .blob.lilac { background: #C4B8CC; }
+      /* ---- cards ---- */
+      .card { position: absolute; background: #F7F4EA; border: 3px solid #3E2E52; border-radius: 12px; }
+      .card .bar { position: absolute; left: 12px; height: 7px; border-radius: 4px; background: #C4B8CC; }
+      .card .bar.pink { background: #D24E6C; }
+      .thumb { position: absolute; background: #C4B8CC; border-radius: 6px; overflow: hidden; }
+      .thumb svg { width: 100%; height: 100%; display: block; }
+      .win-head { position: absolute; left: 0; right: 0; top: 0; height: 22px; border-bottom: 3px solid #3E2E52; background: #E6E3D4; border-radius: 9px 9px 0 0; }
+      .win-head.pink { background: #D24E6C; }
+      .dot { position: absolute; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #3E2E52; }
+      .sticky { background: #F3EBC6; }
+      .pill { position: absolute; background: #D24E6C; color: #F7F4EA; font-weight: 900; border-radius: 999px; padding: 6px 18px; font-size: 20px; text-align: center; line-height: 1.2; }
+      .badge { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: #D24E6C; color: #F7F4EA; font: 900 20px "Nunito", sans-serif; display: grid; place-items: center; border: 3px solid #F7F4EA; }
+      .bubble { position: absolute; background: #F7F4EA; border: 3px solid #3E2E52; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 22px; }
+      .bubble::after { content: ""; position: absolute; bottom: -12px; left: 22px; width: 16px; height: 16px; background: #F7F4EA; border-right: 3px solid #3E2E52; border-bottom: 3px solid #3E2E52; transform: rotate(45deg); }
+      .txt { position: absolute; font-weight: 900; line-height: 1.15; white-space: nowrap; }
+      .txt .ch { display: inline-block; }
+      .pinkT { color: #D24E6C; } .creamT { color: #F7F4EA; }
+      .underline { position: absolute; height: 10px; border-radius: 6px; background: #D24E6C; transform-origin: left center; }
+      .sparkle { position: absolute; width: 22px; height: 22px; }
+      .sparkle::before, .sparkle::after { content: ""; position: absolute; background: #D24E6C; border-radius: 3px; }
+      .sparkle::before { left: 9px; top: 0; width: 4px; height: 22px; } .sparkle::after { top: 9px; left: 0; width: 22px; height: 4px; }
+      .sparkle.lav::before, .sparkle.lav::after { background: #C4B8CC; }
+      .impact { position: absolute; width: 4px; height: 22px; background: #D24E6C; border-radius: 3px; transform-origin: 50% 100%; }
+      .cursor { position: absolute; width: 26px; height: 32px; }
+      .panel { position: absolute; width: 190px; height: 210px; background: #3E2E52; border-radius: 16px; }
+      .panel .icon { position: absolute; left: 30px; top: 30px; width: 130px; height: 110px; border: 3px solid #F7F4EA; border-radius: 12px; }
+      .flowcard { position: absolute; width: 200px; height: 220px; background: #F7F4EA; border: 3px solid #3E2E52; border-radius: 16px; }
+      .flowcard.dashed { border-style: dashed; background: transparent; }
+      .lbl { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font-weight: 900; font-size: 24px; color: #3E2E52; }
+      .flowcard.dashed .lbl { color: #F7F4EA; }
+      .btn { position: absolute; background: #3E2E52; color: #F7F4EA; font-weight: 900; font-size: 24px; padding: 14px 40px; border-radius: 999px; }
+      .btn b { color: #D24E6C; }
+      .cta-arrow { color: #D24E6C; }
+      .ui { position: absolute; background: #F7F4EA; border: 3px solid #3E2E52; border-radius: 14px; overflow: hidden; }
+      .ui .side { position: absolute; left: 0; top: 34px; bottom: 0; width: 90px; border-right: 3px solid #3E2E52; background: #EDE9DC; }
+      .ui .side i { position: absolute; left: 18px; width: 54px; height: 9px; border-radius: 5px; background: #C4B8CC; }
+      .ui .search { position: absolute; left: 120px; top: 44px; width: 220px; height: 26px; border: 3px solid #3E2E52; border-radius: 8px; background: #fff; }
+      .ui .brand { position: absolute; left: 106px; top: 42px; font: 900 18px "Nunito", sans-serif; }
+      .ui .brand b { display: inline-block; width: 22px; height: 22px; background: #D24E6C; color: #fff; border-radius: 5px; text-align: center; line-height: 22px; margin-right: 6px; }
+      .ui .boardcard { position: absolute; width: 150px; height: 118px; background: #fff; border: 3px solid #3E2E52; border-radius: 10px; }
+      .wordmark { position: absolute; font: 900 120px "Nunito", sans-serif; letter-spacing: -0.02em; }
+      .wordmark .o { position: relative; display: inline-block; }
+      .wordmark .o::after { content: ""; position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: #D24E6C; }
+      svg.draw path, svg.draw line { fill: none; stroke: #3E2E52; stroke-width: 3; stroke-dasharray: 8 8; }
+      svg.arrow path { fill: none; stroke: #D24E6C; stroke-width: 4; stroke-linecap: round; }
+    </style>
+  </head>
+  <body>
+    <div class="frame"><div id="root" data-composition-id="boardly-ad" data-start="0" data-duration="10.1" data-width="1280" data-height="720">
+      <audio id="bgm" src="bgm.wav" preload="auto"></audio>
+
+      <!-- ================= A: 問題提起 (0–2.0) ================= -->
+      <div id="sA" class="scene clip bg-cream" data-start="0" data-duration="2.3" data-track-index="1">
+        <div class="blob lav" style="right:-120px;top:-160px;width:520px;height:420px"></div>
+        <div class="blob pink" style="left:-160px;bottom:-200px;width:560px;height:440px"></div>
+        <svg class="draw abs" id="a-lines" width="1280" height="720" style="left:0;top:0">
+          <path d="M 150 120 C 260 60, 330 180, 420 100" /><path d="M 200 360 C 260 300, 380 420, 470 350" /><path d="M 470 230 C 560 260, 600 160, 700 210" />
+        </svg>
+        <div class="card sticky a-el" style="left:90px;top:70px;width:150px;height:130px;transform:rotate(-8deg)"><div class="bar pink" style="top:44px;width:100px"></div><div class="bar pink" style="top:70px;width:80px"></div><div class="abs" style="left:60px;top:-10px;width:28px;height:14px;border:3px solid #3E2E52;border-radius:8px;background:#F7F4EA"></div></div>
+        <div class="card a-el" style="left:300px;top:60px;width:170px;height:140px;transform:rotate(6deg)"><div class="thumb" style="left:14px;top:14px;width:138px;height:110px"><svg viewBox="0 0 100 80"><rect width="100" height="80" fill="#C4B8CC"/><circle cx="70" cy="22" r="10" fill="#F7F4EA"/><path d="M0 80 L30 40 L52 62 L68 48 L100 80Z" fill="#3E2E52"/></svg></div></div>
+        <div class="card a-el" style="left:560px;top:30px;width:130px;height:90px;background:#D24E6C;border-radius:12px 12px 12px 12px"><div class="abs" style="left:-3px;top:-16px;width:60px;height:20px;background:#D24E6C;border:3px solid #3E2E52;border-bottom:0;border-radius:8px 8px 0 0"></div></div>
+        <div class="card a-el" style="left:120px;top:250px;width:250px;height:70px;background:#C4B8CC"><div class="abs" style="left:14px;top:-12px;font:900 13px Nunito;background:#F7F4EA;border:3px solid #3E2E52;border-radius:6px;padding:2px 8px">URL</div><div class="abs" style="left:14px;top:30px;font:800 17px Nunito;color:#3E2E52">https://link.com/tat</div></div>
+        <div class="card a-el" style="left:420px;top:230px;width:150px;height:200px;transform:rotate(-5deg)"><div class="abs" style="left:40px;top:-14px;width:70px;height:18px;background:#D24E6C;border:3px solid #3E2E52;border-radius:6px"></div>
+          <div class="abs" style="left:16px;top:40px;width:18px;height:18px;border:3px solid #D24E6C;border-radius:4px;background:#D24E6C"></div><div class="bar" style="top:46px;left:44px;width:80px"></div>
+          <div class="abs" style="left:16px;top:80px;width:18px;height:18px;border:3px solid #D24E6C;border-radius:4px;background:#D24E6C"></div><div class="bar" style="top:86px;left:44px;width:70px"></div>
+          <div class="abs" style="left:16px;top:120px;width:18px;height:18px;border:3px solid #3E2E52;border-radius:4px"></div><div class="bar" style="top:126px;left:44px;width:80px"></div>
+          <div class="abs" style="left:16px;top:160px;width:18px;height:18px;border:3px solid #3E2E52;border-radius:4px"></div><div class="bar" style="top:166px;left:44px;width:60px"></div></div>
+        <div class="card a-el" style="left:60px;top:430px;width:300px;height:190px;transform:rotate(4deg)"><div class="win-head"><i class="dot" style="left:10px"></i><i class="dot" style="left:24px"></i><i class="dot" style="left:38px"></i></div><div class="thumb" style="left:16px;top:40px;width:90px;height:70px"></div><div class="bar" style="top:44px;left:120px;width:150px"></div><div class="bar" style="top:64px;left:120px;width:120px"></div><div class="bar" style="top:84px;left:120px;width:140px"></div><div class="bar pink" style="top:130px;left:16px;width:200px"></div><div class="bar" style="top:152px;left:16px;width:240px"></div></div>
+        <div class="card a-el" style="left:420px;top:470px;width:330px;height:200px;transform:rotate(-4deg)"><div class="win-head pink"><i class="dot" style="left:10px"></i><i class="dot" style="left:24px"></i><i class="dot" style="left:38px"></i></div><div class="thumb" style="left:16px;top:40px;width:110px;height:80px"><svg viewBox="0 0 100 80"><rect width="100" height="80" fill="#C4B8CC"/><circle cx="72" cy="20" r="9" fill="#F7F4EA"/><path d="M0 80 L34 40 L54 60 L70 46 L100 80Z" fill="#3E2E52"/></svg></div><div class="bar" style="top:44px;left:140px;width:160px"></div><div class="bar" style="top:64px;left:140px;width:130px"></div><div class="bar pink" style="top:84px;left:140px;width:100px"></div><div class="bar" style="top:140px;left:16px;width:280px"></div><div class="bar" style="top:162px;left:16px;width:220px"></div></div>
+        <svg class="cursor a-el" style="left:470px;top:170px" viewBox="0 0 26 32"><path d="M2 2 L2 26 L8 20 L13 30 L18 28 L13 18 L22 18 Z" fill="#F7F4EA" stroke="#3E2E52" stroke-width="3" stroke-linejoin="round"/></svg>
+        <div class="txt" id="a-t1" style="left:760px;top:120px;font-size:64px"><span class="ch">情</span><span class="ch">報</span><span class="ch">、</span></div>
+        <div class="txt pinkT" id="a-q" style="left:960px;top:100px;font-size:76px">?</div>
+        <div class="txt pinkT" id="a-t2" style="left:760px;top:210px;font-size:64px"><span class="ch">散</span><span class="ch">ら</span><span class="ch">か</span><span class="ch">っ</span><span class="ch">て</span></div>
+        <div class="txt" id="a-t3" style="left:760px;top:300px;font-size:64px"><span class="ch">ま</span><span class="ch">せ</span><span class="ch">ん</span><span class="ch">か</span><span class="ch">？</span></div>
+        <div class="sparkle" style="left:700px;top:60px"></div><div class="sparkle lav" style="left:1160px;top:300px"></div>
+        <div class="impact" style="left:180px;top:200px;transform:rotate(-30deg)"></div><div class="impact" style="left:200px;top:196px"></div><div class="impact" style="left:220px;top:200px;transform:rotate(30deg)"></div>
+      </div>
+      <!-- 円ワイプ -->
+      <div id="wipe" class="clip" data-start="1.9" data-duration="0.7" data-track-index="5" style="position:absolute;left:-200px;top:360px;width:200px;height:200px;margin:-100px 0 0 -100px;border-radius:50%;background:#D24E6C"></div>
+
+      <!-- ================= B: 共感 (2.0–3.5) ================= -->
+      <div id="sB" class="scene clip bg-pink" data-start="2.0" data-duration="1.5" data-track-index="1">
+        <div class="blob plum" style="right:-140px;top:-120px;width:700px;height:520px;opacity:.9"></div>
+        <div class="blob lav" style="left:-160px;bottom:-240px;width:520px;height:460px"></div>
+        <!-- 人物 -->
+        <svg id="b-man" class="abs" style="left:420px;top:190px" width="520" height="560" viewBox="0 0 520 560">
+          <g stroke="#3E2E52" stroke-width="6" stroke-linejoin="round">
+            <ellipse cx="260" cy="560" rx="260" ry="30" fill="#3E2E52" stroke="none" opacity=".25"/>
+            <path d="M120 540 C120 420, 160 360, 260 360 C360 360, 400 420, 400 540 Z" fill="#8B7BA8"/>
+            <path d="M215 370 L305 370 L300 470 L220 470 Z" fill="#D24E6C"/>
+            <path d="M232 300 L288 300 L292 372 L228 372 Z" fill="#FFD6BE"/>
+            <circle cx="260" cy="250" r="82" fill="#FFD6BE"/>
+            <path d="M178 240 C180 150, 340 140, 342 240 C320 200, 290 195, 250 210 C225 220, 200 245, 178 240 Z" fill="#3E2E52"/>
+            <circle cx="236" cy="260" r="6" fill="#3E2E52" stroke="none"/><circle cx="286" cy="260" r="6" fill="#3E2E52" stroke="none"/>
+            <ellipse cx="262" cy="292" rx="10" ry="13" fill="#3E2E52" stroke="none"/>
+            <path d="M200 240 q10 -8 20 0 M300 240 q10 -8 20 0" fill="none"/>
+            <!-- ノートPC -->
+            <path d="M60 540 L460 540 L440 470 L80 470 Z" fill="#E6E3D4"/>
+            <path d="M90 470 L430 470 L410 430 L110 430 Z" fill="#F7F4EA"/>
+            <path d="M120 470 C150 445, 200 440, 230 470 M290 470 C320 440, 370 445, 400 470" fill="#FFD6BE"/>
+          </g>
+        </svg>
+        <div class="bubble b-bub" style="left:650px;top:150px;width:104px;height:104px">画像</div>
+        <div class="bubble b-bub" style="left:790px;top:100px;width:104px;height:104px">メモ</div>
+        <div class="bubble b-bub" style="left:930px;top:150px;width:104px;height:104px">URL</div>
+        <div class="card b-card" style="left:1000px;top:60px;width:170px;height:150px;transform:rotate(6deg)"><div class="win-head"><i class="dot" style="left:10px"></i></div><div class="bar" style="top:40px;width:120px"></div><div class="bar" style="top:60px;width:90px"></div><div class="bar pink" style="top:80px;width:110px"></div><div class="bar" style="top:100px;width:120px"></div></div>
+        <div class="card b-card" style="left:1080px;top:280px;width:160px;height:170px;transform:rotate(-6deg)"><div class="abs" style="left:16px;top:20px;width:18px;height:18px;border:3px solid #D24E6C;border-radius:4px;background:#D24E6C"></div><div class="bar" style="top:26px;left:44px;width:80px"></div><div class="abs" style="left:16px;top:60px;width:18px;height:18px;border:3px solid #3E2E52;border-radius:4px"></div><div class="bar" style="top:66px;left:44px;width:70px"></div><div class="thumb" style="left:16px;top:100px;width:120px;height:50px;background:#D24E6C"></div></div>
+        <div class="card b-card" style="left:80px;top:60px;width:190px;height:150px;transform:rotate(-8deg)"><div class="thumb" style="left:12px;top:12px;width:160px;height:120px"><svg viewBox="0 0 100 80"><rect width="100" height="80" fill="#C4B8CC"/><circle cx="72" cy="20" r="9" fill="#F7F4EA"/><path d="M0 80 L34 40 L54 60 L70 46 L100 80Z" fill="#3E2E52"/></svg></div></div>
+        <div class="card b-card" style="left:250px;top:120px;width:150px;height:110px;transform:rotate(5deg)"><div class="win-head pink"></div><div class="bar" style="top:38px;width:100px"></div><div class="bar" style="top:58px;width:80px"></div></div>
+        <div class="card b-card" style="left:60px;top:430px;width:170px;height:130px;background:#8B7BA8"><div class="abs" style="left:-3px;top:-16px;width:60px;height:20px;background:#8B7BA8;border:3px solid #3E2E52;border-bottom:0;border-radius:8px 8px 0 0"></div><div class="card" style="left:70px;top:40px;width:110px;height:80px"><div class="thumb" style="left:10px;top:10px;width:84px;height:54px"></div></div></div>
+        <svg class="abs b-card" style="left:300px;top:330px" width="80" height="60" viewBox="0 0 80 60"><path d="M4 6 L76 6 L76 54 L4 54 Z M4 6 L40 34 L76 6" fill="#3E2E52" stroke="#F7F4EA" stroke-width="4" stroke-linejoin="round"/></svg>
+        <div class="txt creamT" id="b-t" style="left:60px;top:300px;font-size:60px"><span class="ch">探</span><span class="ch">す</span><span class="ch">の</span><span class="ch">が</span><span class="ch">大</span><span class="ch">変</span><span class="ch">…</span></div>
+        <div class="underline" id="b-ul" style="left:64px;top:372px;width:180px"></div>
+      </div>
+
+      <!-- ================= C: 転換 (3.5–4.0) ================= -->
+      <div id="sC" class="scene clip bg-plum" data-start="3.5" data-duration="0.5" data-track-index="1">
+        <div class="blob lav" style="left:-100px;top:200px;width:900px;height:400px;opacity:.55;border-radius:60% 40% 50% 50% / 40% 60% 40% 60%"></div>
+        <div class="txt creamT" style="left:60px;top:40px;font-size:30px">Boardlyなら</div>
+        <div class="card c-fall" style="left:200px;top:-160px;width:140px;height:110px"><div class="thumb" style="left:10px;top:10px;width:120px;height:86px"></div></div>
+        <div class="card c-fall" style="left:420px;top:-200px;width:120px;height:120px;transform:rotate(12deg)"><div class="bar" style="top:20px;width:80px"></div><div class="bar pink" style="top:40px;width:60px"></div><div class="bar" style="top:60px;width:90px"></div></div>
+        <div class="card c-fall" style="left:760px;top:-180px;width:150px;height:100px;transform:rotate(-10deg)"><div class="win-head pink"></div><div class="bar" style="top:36px;width:100px"></div></div>
+        <div class="card c-fall" style="left:960px;top:-150px;width:120px;height:120px;transform:rotate(8deg)"><div class="thumb" style="left:10px;top:10px;width:100px;height:100px;background:#D24E6C"></div></div>
+        <div class="card" id="c-win" style="left:440px;top:230px;width:400px;height:260px"><div class="win-head"><i class="dot" style="left:10px"></i><i class="dot" style="left:24px"></i><i class="dot" style="left:38px"></i></div></div>
+        <div class="sparkle" style="left:1100px;top:120px"></div><div class="sparkle lav" style="left:160px;top:560px"></div>
+      </div>
+
+      <!-- ================= D: プロダクト (4.0–5.5) ================= -->
+      <div id="sD" class="scene clip bg-plum" data-start="4.0" data-duration="1.5" data-track-index="1">
+        <div class="blob pink" style="left:-200px;top:-150px;width:700px;height:520px"></div>
+        <div class="blob lav" style="right:-180px;bottom:-200px;width:620px;height:520px;opacity:.8"></div>
+        <div class="txt creamT" style="left:60px;top:40px;font-size:30px">集めて</div>
+        <div class="ui" id="d-ui" style="left:200px;top:110px;width:880px;height:560px">
+          <div class="win-head"><i class="dot" style="left:10px"></i><i class="dot" style="left:24px"></i><i class="dot" style="left:38px"></i></div>
+          <div class="side"><i style="top:24px"></i><i style="top:54px;background:#3E2E52"></i><i style="top:84px"></i><i style="top:114px"></i><i style="top:144px"></i></div>
+          <div class="brand"><b>B</b>Boardly</div><div class="search"></div>
+          <div class="pill d-tag" style="left:330px;top:100px;font-size:13px;padding:3px 12px;background:#8B7BA8">画像</div><div class="pill d-tag" style="left:420px;top:100px;font-size:13px;padding:3px 12px">メモ</div><div class="pill d-tag" style="left:500px;top:100px;font-size:13px;padding:3px 12px;background:#3E2E52">URL</div>
+          <div id="d-grid"></div>
+          <svg class="arrow abs" id="d-arrows" width="880" height="560" style="left:0;top:0">
+            <path d="M 300 200 L 340 200" /><path d="M 490 200 L 530 200" /><path d="M 680 200 L 720 200" />
+            <path d="M 300 360 L 340 360" /><path d="M 490 360 L 530 360" /><path d="M 680 360 L 720 360" />
+            <path d="M 420 260 L 420 290" /><path d="M 610 260 L 610 290" />
+          </svg>
+          <svg class="cursor" id="d-cur" style="left:600px;top:400px" viewBox="0 0 26 32"><path d="M2 2 L2 26 L8 20 L13 30 L18 28 L13 18 L22 18 Z" fill="#F7F4EA" stroke="#3E2E52" stroke-width="3" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="sparkle" style="left:140px;top:560px"></div><div class="sparkle" style="left:1150px;top:130px"></div>
+      </div>
+
+      <!-- ================= E: 3ステップ (5.5–7.5) ================= -->
+      <div id="sE" class="scene clip bg-pink" data-start="5.5" data-duration="2.0" data-track-index="1">
+        <div class="blob plum" style="right:-200px;top:-200px;width:700px;height:600px"></div>
+        <div class="card" id="e-sheet" style="left:40px;top:40px;width:1200px;height:640px;border-radius:28px"></div>
+        <div class="abs" style="left:80px;top:70px;font:900 22px Nunito"><b style="display:inline-block;width:26px;height:26px;background:#D24E6C;color:#fff;border-radius:6px;text-align:center;line-height:26px;margin-right:8px">B</b>Boardly</div>
+        <div class="txt" id="e-t1" style="left:0;width:1280px;text-align:center;top:90px;font-size:44px">集めて、整理して、</div>
+        <div class="txt" id="e-t2" style="left:0;width:1280px;text-align:center;top:150px;font-size:44px">すぐに使える</div>
+        <div class="underline" id="e-ul" style="left:520px;top:200px;width:140px"></div>
+        <div class="panel e-p" style="left:130px;top:280px"><div class="badge" style="left:-14px;top:-14px">1</div><div class="icon"><svg viewBox="0 0 130 110" width="124" height="104"><path d="M20 55 L45 55 L52 70 L78 70 L85 55 L110 55 L110 95 L20 95 Z" fill="none" stroke="#F7F4EA" stroke-width="5" stroke-linejoin="round"/><path d="M65 20 L65 50" stroke="#F7F4EA" stroke-width="5" stroke-linecap="round"/><circle cx="96" cy="26" r="14" fill="#D24E6C"/><path d="M90 26 L102 26 M96 20 L96 32" stroke="#fff" stroke-width="4"/></svg></div><div class="pill" style="left:25px;bottom:16px;width:140px">保存</div></div>
+        <div class="txt e-plus" style="left:335px;top:360px;font-size:56px;color:#D24E6C">+</div>
+        <div class="panel e-p" style="left:400px;top:280px"><div class="badge" style="left:-14px;top:-14px">2</div><div class="icon" id="e-grid"></div><div class="pill" style="left:25px;bottom:16px;width:140px">整理</div></div>
+        <div class="txt e-plus" style="left:605px;top:360px;font-size:56px;color:#D24E6C">+</div>
+        <div class="panel e-p" style="left:670px;top:280px"><div class="badge" style="left:-14px;top:-14px">3</div><div class="icon"><svg viewBox="0 0 130 110" width="124" height="104"><circle cx="40" cy="55" r="12" fill="#F7F4EA"/><circle cx="92" cy="28" r="12" fill="#F7F4EA"/><circle cx="92" cy="82" r="12" fill="#F7F4EA"/><path d="M50 50 L82 33 M50 60 L82 77" stroke="#F7F4EA" stroke-width="5"/></svg></div><div class="pill" style="left:25px;bottom:16px;width:140px">共有</div></div>
+        <div class="card" id="e-drag" style="left:1000px;top:330px;width:150px;height:130px"><div class="win-head"></div><div id="e-drag-grid"></div></div>
+        <svg class="cursor" id="e-cur" style="left:1110px;top:420px" viewBox="0 0 26 32"><path d="M2 2 L2 26 L8 20 L13 30 L18 28 L13 18 L22 18 Z" fill="#F7F4EA" stroke="#3E2E52" stroke-width="3" stroke-linejoin="round"/></svg>
+        <svg id="e-woman" class="abs" style="left:900px;top:250px" width="360" height="470" viewBox="0 0 360 470">
+          <g stroke="#3E2E52" stroke-width="6" stroke-linejoin="round">
+            <path d="M90 470 C90 360, 120 300, 190 300 C260 300, 290 360, 290 470 Z" fill="#8B7BA8"/>
+            <path d="M120 330 C60 340, 40 300, 30 260" fill="none" stroke-linecap="round"/>
+            <circle cx="24" cy="252" r="14" fill="#FFD6BE"/>
+            <path d="M166 250 L214 250 L216 310 L164 310 Z" fill="#FFD6BE"/>
+            <circle cx="190" cy="190" r="74" fill="#FFD6BE"/>
+            <path d="M116 190 C110 100, 270 100, 264 190 C266 230, 270 260, 250 280 L240 210 C220 180, 160 180, 140 210 L130 280 C112 260, 114 230, 116 190 Z" fill="#3E2E52"/>
+            <circle cx="168" cy="200" r="6" fill="#3E2E52" stroke="none"/><circle cx="212" cy="200" r="6" fill="#3E2E52" stroke="none"/>
+            <path d="M172 226 q18 14 36 0" fill="none" stroke-linecap="round"/>
+          </g>
+        </svg>
+        <div class="impact" style="left:1180px;top:80px;transform:rotate(30deg)"></div><div class="impact" style="left:1200px;top:76px"></div><div class="impact" style="left:1220px;top:80px;transform:rotate(-30deg)"></div>
+      </div>
+
+      <!-- ================= F: ベネフィット (7.5–8.5) ================= -->
+      <div id="sF" class="scene clip bg-plum" data-start="7.5" data-duration="1.0" data-track-index="1">
+        <div class="blob pink" style="right:-220px;top:-220px;width:640px;height:560px"></div>
+        <div class="blob lav" style="left:-200px;bottom:-240px;width:600px;height:500px;opacity:.7"></div>
+        <div class="txt creamT" id="f-t1" style="left:0;width:1280px;text-align:center;top:70px;font-size:48px">必要な情報が</div>
+        <div class="txt pinkT" id="f-t2" style="left:0;width:1280px;text-align:center;top:135px;font-size:48px;color:#FF8FA8">すぐ見つかる</div>
+        <div class="underline" id="f-ul" style="left:520px;top:190px;width:240px"></div>
+        <div class="flowcard dashed f-c" style="left:190px;top:280px"><svg viewBox="0 0 130 110" width="150" height="120" style="position:absolute;left:24px;top:30px"><path d="M20 55 L45 55 L52 70 L78 70 L85 55 L110 55 L110 95 L20 95 Z" fill="none" stroke="#F7F4EA" stroke-width="5" stroke-linejoin="round"/><circle cx="96" cy="26" r="14" fill="#D24E6C"/><path d="M90 26 L102 26 M96 20 L96 32" stroke="#fff" stroke-width="4"/></svg><div class="lbl">保存</div></div>
+        <div class="flowcard f-c" style="left:540px;top:280px"><div class="win-head"></div><div id="f-grid"></div><div class="lbl">整理</div></div>
+        <div class="flowcard f-c" style="left:890px;top:280px"><div class="win-head pink"></div><div class="bar" style="top:44px;width:150px"></div><div class="bar" style="top:66px;width:120px"></div><div class="bar" style="top:88px;width:140px"></div><div class="bar pink" style="top:110px;width:100px"></div><svg id="f-check" style="position:absolute;left:110px;top:100px" width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="#D24E6C"/><path d="M22 42 L35 55 L60 28" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="lbl">活用</div></div>
+        <svg class="arrow abs" id="f-arrows" width="1280" height="720" style="left:0;top:0"><path d="M 400 390 L 520 390 M 500 375 L 520 390 L 500 405" /><path d="M 750 390 L 870 390 M 850 375 L 870 390 L 850 405" /></svg>
+        <div class="sparkle" style="left:140px;top:120px"></div><div class="sparkle lav" style="left:1140px;top:560px"></div>
+      </div>
+
+      <!-- ================= G: ロゴ+CTA (8.5–10.1) ================= -->
+      <div id="sG" class="scene clip bg-cream" data-start="8.5" data-duration="1.6" data-track-index="1">
+        <div class="ui g-dev" style="left:110px;top:90px;width:520px;height:330px"><div class="win-head"><i class="dot" style="left:10px"></i><i class="dot" style="left:24px"></i><i class="dot" style="left:38px"></i></div><div class="side" style="width:60px"><i style="top:20px;width:30px"></i><i style="top:44px;width:30px;background:#3E2E52"></i><i style="top:68px;width:30px"></i></div><div id="g-grid"></div></div>
+        <div class="card g-dev" style="left:70px;top:330px;width:260px;height:150px;background:#3E2E52;border-radius:12px"><div class="abs" style="left:14px;top:12px;right:14px;bottom:30px;background:#F7F4EA;border-radius:6px"></div><div class="abs" style="left:-20px;bottom:-16px;width:300px;height:16px;background:#C4B8CC;border:3px solid #3E2E52;border-radius:8px"></div></div>
+        <div class="card g-dev" style="left:420px;top:300px;width:170px;height:220px;background:#3E2E52;border-radius:16px"><div class="abs" style="left:12px;top:14px;right:12px;bottom:14px;background:#F7F4EA;border-radius:8px"></div></div>
+        <div class="wordmark" id="g-wm" style="left:700px;top:230px"><span class="ch">B</span><span class="ch o">o</span><span class="ch">a</span><span class="ch">r</span><span class="ch">d</span><span class="ch">l</span><span class="ch">y</span></div>
+        <div class="impact g-imp" style="left:1160px;top:200px;transform:rotate(30deg)"></div><div class="impact g-imp" style="left:1185px;top:192px"></div><div class="impact g-imp" style="left:1210px;top:200px;transform:rotate(-30deg)"></div>
+        <div class="txt" id="g-tag" style="left:0;width:1280px;text-align:center;top:520px;font-size:34px">散らかった情報を、<span id="g-hl" style="position:relative;display:inline-block">ひとつの場所</span>に。</div>
+        <div class="underline" id="g-ul" style="left:0;top:566px;width:200px"></div>
+        <div class="btn" id="g-btn" style="left:0;top:612px">無料で使ってみる <span class="cta-arrow">→</span></div>
+        <div class="sparkle" id="g-sp" style="left:0;top:620px"></div>
+      </div>
+    </div>
+    <div class="overlay" id="overlay"><div class="play"></div></div>
+    </div>
+    <div class="hud"><button id="replay">もう一度</button><button id="pause">一時停止</button></div>
+
+    <script>
+      // ---------- 繰り返しDOMをここで生成（決定論的） ----------
+      const mk = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; };
+      const mountain = `<svg viewBox="0 0 100 80"><rect width="100" height="80" fill="#C4B8CC"/><circle cx="72" cy="20" r="9" fill="#F7F4EA"/><path d="M0 80 L34 40 L54 60 L70 46 L100 80Z" fill="#3E2E52"/></svg>`;
+      // D: 3x2 ボードカード
+      const dGrid = document.getElementById("d-grid");
+      const dPos = [[150,120],[340,120],[530,120],[150,290],[340,290],[530,290]];
+      dPos.forEach(([x,y], i) => {
+        const photo = i % 2 === 0;
+        dGrid.appendChild(mk(`<div class="boardcard d-card" style="left:${x}px;top:${y}px">${photo ? `<div class="thumb" style="left:10px;top:10px;width:126px;height:60px">${mountain}</div><div class="bar" style="top:82px;width:90px"></div><div class="bar" style="top:98px;width:60px"></div>` : `<div class="win-head ${i===5?"pink":""}" style="height:16px"></div><div class="bar" style="top:30px;width:110px"></div><div class="bar pink" style="top:48px;width:70px"></div><div class="bar" style="top:66px;width:100px"></div><div class="bar" style="top:84px;width:90px"></div>`}</div>`));
+      });
+      // E/F/G: サムネグリッド
+      const grid3 = (el, size, gap, hl) => { for (let i = 0; i < 9; i++) el.appendChild(mk(`<div class="abs" style="left:${14 + (i%3)*(size+gap)}px;top:${14 + Math.floor(i/3)*(size+gap)}px;width:${size}px;height:${size}px;border-radius:5px;background:${i===hl?"#D24E6C":"#C4B8CC"}"></div>`)); };
+      grid3(document.getElementById("e-grid"), 28, 8, 4);
+      grid3(document.getElementById("e-drag-grid"), 30, 8, 1);
+      grid3(document.getElementById("f-grid"), 42, 10, 4);
+      document.getElementById("f-grid").style.cssText = "position:absolute;left:14px;top:26px";
+      const gg = document.getElementById("g-grid"); gg.style.cssText = "position:absolute;left:80px;top:40px";
+      for (let i = 0; i < 6; i++) gg.appendChild(mk(`<div class="boardcard" style="left:${(i%3)*140}px;top:${Math.floor(i/3)*130}px;width:120px;height:110px">${i%2===0 ? `<div class="thumb" style="left:8px;top:8px;width:98px;height:50px">${mountain}</div><div class="bar" style="top:70px;left:8px;width:70px"></div>` : `<div class="bar" style="top:14px;left:8px;width:90px"></div><div class="bar pink" style="top:32px;left:8px;width:60px"></div><div class="bar" style="top:50px;left:8px;width:80px"></div>`}</div>`));
+      // 自己描画用: パス長をセット
+      document.querySelectorAll("svg.draw path, svg.arrow path").forEach((p) => { const L = p.getTotalLength(); p.style.strokeDasharray = p.classList.contains("dash") ? "8 8" : `${L}`; p.dataset.len = L; p.style.strokeDashoffset = L; });
+      document.querySelectorAll("svg.draw path").forEach((p) => { p.style.strokeDasharray = `${p.dataset.len}`; });
+
+      // ---------- タイムライン ----------
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const pop = { scale: 0, opacity: 0, ease: "back.out(2)", duration: 0.45 };
+
+      // A
+      tl.fromTo(".a-el", pop, { scale: 1, opacity: 1, stagger: 0.07, ease: "back.out(2)", duration: 0.5 }, 0.05);
+      tl.fromTo("#a-lines path", { strokeDashoffset: (i, el) => el.dataset.len }, { strokeDashoffset: 0, duration: 0.6, stagger: 0.1 }, 0.5);
+      tl.fromTo("#a-t1 .ch", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: "back.out(2)" }, 0.4);
+      tl.fromTo("#a-q", { scale: 0, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out(3)" }, 0.75);
+      tl.fromTo("#a-t2 .ch", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: "back.out(2)" }, 0.85);
+      tl.fromTo("#a-t3 .ch", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: "back.out(2)" }, 1.15);
+      tl.fromTo("#sA .sparkle", { scale: 0 }, { scale: 1, duration: 0.3, stagger: 0.1, ease: "back.out(3)" }, 1.4);
+      // 円ワイプ (1.9–2.6)
+      tl.fromTo("#wipe", { scale: 0.2, x: 0 }, { scale: 16, x: 500, duration: 0.65, ease: "power2.in" }, 1.9);
+      // B
+      tl.fromTo("#b-man", { y: 320, rotation: -6 }, { y: 0, rotation: 0, duration: 0.6, ease: "back.out(1.6)" }, 2.1);
+      tl.fromTo(".b-bub", { scale: 0, y: 30 }, { scale: 1, y: 0, duration: 0.45, stagger: 0.12, ease: "back.out(2.5)" }, 2.45);
+      tl.fromTo(".b-card", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, stagger: 0.06, ease: "back.out(2)" }, 2.25);
+      tl.to(".b-bub", { y: -8, duration: 0.5, ease: "sine.inOut", stagger: 0.1, yoyo: true, repeat: 1 }, 2.95);
+      tl.fromTo("#b-t .ch", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, stagger: 0.05, ease: "power3.out" }, 2.5);
+      tl.fromTo("#b-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power3.out" }, 2.95);
+      // C
+      tl.fromTo("#c-win", { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.8)" }, 3.55);
+      tl.fromTo(".c-fall", { y: 0, opacity: 1 }, { y: 420, x: (i) => [200, 60, -200, -320][i], scale: 0.3, opacity: 0, duration: 0.45, stagger: 0.04, ease: "power2.in" }, 3.55);
+      tl.set(".c-fall", { opacity: 0 }, 4.0);
+      tl.fromTo("#sC .sparkle", { scale: 0 }, { scale: 1, duration: 0.25, stagger: 0.08 }, 3.6);
+      // D
+      tl.fromTo("#d-ui", { y: 500, rotation: 2 }, { y: 0, rotation: 0, duration: 0.6, ease: "back.out(1.4)" }, 4.0);
+      tl.fromTo(".d-card", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, stagger: 0.08, ease: "back.out(2)" }, 4.35);
+      tl.fromTo(".d-tag", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, stagger: 0.06 }, 4.5);
+      tl.fromTo("#d-arrows path", { strokeDashoffset: (i, el) => el.dataset.len }, { strokeDashoffset: 0, duration: 0.25, stagger: 0.06 }, 4.8);
+      tl.fromTo("#d-cur", { x: 120, y: 80, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 4.9);
+      tl.fromTo("#sD .sparkle", { scale: 0 }, { scale: 1, duration: 0.3, stagger: 0.1, ease: "back.out(3)" }, 5.0);
+      // E
+      tl.fromTo("#e-sheet", { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" }, 5.5);
+      tl.fromTo("#e-t1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 5.7);
+      tl.fromTo("#e-t2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 5.85);
+      tl.fromTo("#e-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out" }, 6.2);
+      tl.fromTo(".e-p", { x: -400, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.15, ease: "back.out(1.4)" }, 5.9);
+      tl.fromTo(".e-plus", { scale: 0 }, { scale: 1, duration: 0.3, stagger: 0.15, ease: "back.out(3)" }, 6.25);
+      tl.fromTo("#e-woman", { x: 400 }, { x: 0, duration: 0.6, ease: "back.out(1.3)" }, 6.2);
+      tl.fromTo("#e-drag", { x: 0, y: 0, opacity: 0 }, { opacity: 1, duration: 0.2 }, 6.6);
+      tl.to("#e-drag", { x: -430, y: -40, duration: 0.7, ease: "power2.inOut" }, 6.75);
+      tl.to("#e-cur", { x: -430, y: -40, duration: 0.7, ease: "power2.inOut" }, 6.75);
+      tl.fromTo("#sE .impact", { scaleY: 0 }, { scaleY: 1, duration: 0.2, stagger: 0.05 }, 6.4);
+      // F
+      tl.fromTo("#f-t1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 7.5);
+      tl.fromTo("#f-t2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 7.62);
+      tl.fromTo("#f-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.3 }, 7.9);
+      tl.fromTo(".f-c", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.14, ease: "back.out(1.6)" }, 7.6);
+      tl.fromTo("#f-arrows path", { strokeDashoffset: (i, el) => el.dataset.len }, { strokeDashoffset: 0, duration: 0.3, stagger: 0.15 }, 7.9);
+      tl.fromTo("#f-check", { scale: 0 }, { scale: 1, duration: 0.35, ease: "back.out(3)" }, 8.25);
+      tl.fromTo("#sF .sparkle", { scale: 0 }, { scale: 1, duration: 0.25, stagger: 0.1 }, 8.1);
+      // G
+      tl.fromTo(".g-dev", { x: -500, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, stagger: 0.1, ease: "back.out(1.3)" }, 8.5);
+      tl.fromTo("#g-wm .ch", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, stagger: 0.07 }, 8.7);
+      tl.fromTo(".g-imp", { scaleY: 0 }, { scaleY: 1, duration: 0.2, stagger: 0.05 }, 9.2);
+      tl.fromTo("#g-tag", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 9.1);
+      tl.fromTo("#g-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.3 }, 9.45);
+      tl.fromTo("#g-btn", { scale: 0 }, { scale: 1, duration: 0.45, ease: "back.out(2.5)" }, 9.5);
+      tl.fromTo("#g-sp", { scale: 0, rotation: -45 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(3)" }, 9.8);
+
+      // 中央寄せの位置決め（フォント読込後の実測）
+      const center = () => {
+        const hl = document.getElementById("g-hl").getBoundingClientRect();
+        const ul = document.getElementById("g-ul"); ul.style.left = hl.left + "px"; ul.style.width = hl.width + "px";
+        const btn = document.getElementById("g-btn"); const bw = btn.getBoundingClientRect().width; btn.style.left = (640 - bw / 2) + "px";
+        document.getElementById("g-sp").style.left = (640 + bw / 2 + 12) + "px";
+        const e2 = document.getElementById("e-t2").getBoundingClientRect(); const eul = document.getElementById("e-ul");
+        eul.style.left = (640 - e2.width / 2 + 2) + "px"; eul.style.width = "132px";
+      };
+      center();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(center);
+      // HyperFrames ランタイムの代替: data-start/duration で各クリップの表示を切替
+      document.querySelectorAll("#root [data-start]").forEach((el) => {
+        if (el.tagName === "AUDIO") return;
+        const st = Number(el.dataset.start), du = Number(el.dataset.duration);
+        tl.set(el, { visibility: "visible" }, st);
+        tl.set(el, { visibility: "hidden" }, st + du);
+      });
+      const bgm = document.getElementById("bgm");
+      const overlay = document.getElementById("overlay");
+      const fit = () => document.documentElement.style.setProperty("--k", Math.min(innerWidth / 1320, innerHeight / 800));
+      fit(); addEventListener("resize", fit);
+      function start() { overlay.classList.add("hidden"); tl.pause(0); bgm.currentTime = 0; bgm.volume = 0.7; bgm.play().catch(() => {}); tl.play(0); }
+      overlay.addEventListener("click", start);
+      document.getElementById("replay").addEventListener("click", start);
+      document.getElementById("pause").addEventListener("click", (e) => { if (tl.paused()) { tl.play(); bgm.play(); e.target.textContent = "一時停止"; } else { tl.pause(); bgm.pause(); e.target.textContent = "再開"; } });
+      tl.eventCallback("onComplete", () => { overlay.classList.remove("hidden"); });
+      window.__timelines["boardly-ad"] = tl;
+    </script>
+  </body>
+</html>

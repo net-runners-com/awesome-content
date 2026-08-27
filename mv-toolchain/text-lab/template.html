@@ -1,0 +1,75 @@
+<meta charset="utf-8">
+<title>Text Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root { --ink: #12102A; --ink-2: #1C1940; --paper: #FFF8EE; --dim: #9AA3C7; --line: rgba(255,248,238,.14); --pink: #FF4F9A; --aqua: #3EE0D8; --citrus: #FFD23F; --grape: #7B2CFF; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif; line-height: 1.6; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px; }
+  .eyebrow { font: 500 12px "DM Mono", monospace; letter-spacing: .18em; text-transform: uppercase; color: var(--aqua); }
+  h1 { margin: 8px 0 4px; font: 400 clamp(32px, 5vw, 56px)/1.05 "Bungee", sans-serif; background: linear-gradient(90deg, var(--citrus), var(--pink) 50%, var(--grape)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header p { margin: 0 0 22px; max-width: 64ch; color: var(--dim); }
+  .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .btn { appearance: none; cursor: pointer; border: 1px solid var(--line); color: var(--paper); background: var(--ink-2); font: 700 13px/1 "Zen Kaku Gothic New", sans-serif; padding: 11px 16px; border-radius: 999px; transition: .15s; }
+  .btn:hover { transform: translateY(-1px); border-color: rgba(255,248,238,.5); }
+  .btn.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .btn:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+  .stage { position: relative; aspect-ratio: 16 / 8; border-radius: 22px; overflow: hidden; background: radial-gradient(120% 100% at 30% 0%, #241F5A, var(--ink) 60%); display: grid; place-items: center; text-align: center; padding: 24px; box-shadow: 0 0 0 1px var(--line); }
+  .stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,248,238,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,248,238,.04) 1px, transparent 1px); background-size: 72px 72px; pointer-events: none; }
+  #jp { position: relative; margin: 0; font: 900 clamp(32px, 6.4vw, 84px)/1.2 "Zen Kaku Gothic New", sans-serif; letter-spacing: .02em; }
+  #en { position: relative; margin: 14px 0 0; font: 400 clamp(16px, 2.4vw, 30px)/1.2 "Bungee", sans-serif; letter-spacing: .18em; color: var(--aqua); }
+  .ch, .wd { display: inline-block; will-change: transform; }
+  .ln { display: block; }
+  /* Mask Reveal */
+  .stage.mask .ln { overflow: hidden; padding-bottom: .08em; }
+  /* Typewriter */
+  .stage.caret #en::after { content: ""; display: inline-block; width: .55em; height: 1em; margin-left: .15em; vertical-align: -.1em; background: var(--citrus); animation: blink .9s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  /* Glitch: 疑似要素で RGB ずれ + スライス */
+  .stage.glitch #jp { --gx: 0px; --clip: 0 0 0 0; }
+  .stage.glitch #jp::before, .stage.glitch #jp::after { content: "音に乗って、光になる。"; position: absolute; inset: 0; pointer-events: none; clip-path: inset(var(--clip)); }
+  .stage.glitch #jp::before { color: var(--pink); transform: translateX(calc(var(--gx) * -1)); mix-blend-mode: screen; }
+  .stage.glitch #jp::after { color: var(--aqua); transform: translateX(var(--gx)); mix-blend-mode: screen; }
+  .stage.karaoke #jp .ch { transition: none; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin: 14px 0 24px; }
+  label { font: 400 11px "DM Mono", monospace; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+  input[type=range] { accent-color: var(--pink); width: 140px; }
+  .info { display: grid; grid-template-columns: 1fr 1.2fr; gap: 18px; }
+  .info h2 { margin: 0 0 6px; font: 700 18px "Zen Kaku Gothic New", sans-serif; }
+  .info p { margin: 0; color: var(--dim); font-size: 14px; }
+  pre { margin: 0; padding: 16px; border-radius: 14px; background: #0B0A1C; color: #F6EAD6; font: 12.5px/1.6 "DM Mono", monospace; overflow-x: auto; border: 1px solid var(--line); }
+  .mini { appearance: none; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--paper); font: 500 11px "DM Mono", monospace; padding: 7px 12px; border-radius: 8px; margin-top: 8px; }
+    </style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">GSAP 3 · SplitText · 8 effects</div>
+    <h1>Text Lab</h1>
+    <p>SplitText で文字/単語/行に分割して GSAP で動かすテキストアニメーション8種。歌詞・タイトル・キネティックタイポ向け。GSAPは2025年4月から全プラグイン無料。</p>
+  </header>
+  <div class="buttons" id="buttons"></div>
+  <div class="stage" id="stage">
+    <div>
+      <p id="jp">音に乗って、光になる。</p>
+      <p id="en">MOVE WITH THE BEAT</p>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn" id="replay">もう一度</button>
+      <label>SPEED <input id="speed" type="range" min="0.25" max="2" step="0.05" value="1"><span id="speed-v">1.00x</span></label>
+    </div>
+    <span style="font:400 11px 'DM Mono',monospace;color:var(--dim)">SplitText.revert() で毎回DOMを元に戻してから再分割</span>
+  </div>
+  <div class="info">
+    <div>
+      <h2 id="fx-name">—</h2>
+      <p id="fx-desc">—</p>
+      <button class="mini" id="copy">コードをコピー</button>
+    </div>
+    <pre id="code"></pre>
+  </div>
+</div>
+<script>
+/*__BUNDLE__*/
+</script>

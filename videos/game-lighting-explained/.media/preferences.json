@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "youtube",
+      "confirmed_in": [
+        "game-lighting-explained"
+      ],
+      "updated_at": "2026-08-24T09:07:40.793Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "game-lighting-explained"
+      ],
+      "updated_at": "2026-08-24T09:07:40.878Z"
+    },
+    "language": {
+      "value": "ja",
+      "confirmed_in": [
+        "game-lighting-explained"
+      ],
+      "updated_at": "2026-08-24T09:07:40.922Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "game-lighting-explained"
+      ],
+      "updated_at": "2026-08-24T09:07:40.963Z"
+    },
+    "storyboard": {
+      "value": "no",
+      "confirmed_in": [
+        "game-lighting-explained"
+      ],
+      "updated_at": "2026-08-24T09:07:41.002Z"
+    },
+    "style_preset.faceless-explainer": {
+      "value": "broadside",
+      "confirmed_in": [
+        "game-lighting-explained"
+      ],
+      "updated_at": "2026-08-24T09:11:25.207Z"
+    }
+  },
+  "sightings": {}
+}

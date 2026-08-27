@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-08-24T09:30:34.844Z",
+  "enabled": true,
+  "provider": null,
+  "mode": null,
+  "path": "assets/bgm/track.wav",
+  "log": null,
+  "pid": null,
+  "target_duration_s": null,
+  "seed_duration_s": null,
+  "loop_count": null,
+  "timeout_ms": 60000,
+  "status": "ready",
+  "ready": true,
+  "waited_ms": 1,
+  "size_bytes": 6001964,
+  "message": "BGM ready at assets/bgm/track.wav."
+}

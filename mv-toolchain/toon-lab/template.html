@@ -1,0 +1,53 @@
+<meta charset="utf-8">
+<title>Toon Lab</title>
+<style>
+  :root { --ink: #12101C; --paper: #F6F1EA; --dim: #A9A3B8; --line: rgba(246,241,234,.18); --panel: rgba(18,16,28,.66); --accent: #FFB13B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Hiragino Sans", "Zen Kaku Gothic New", sans-serif; overflow: hidden; }
+  #c { display: block; width: 100vw; height: 100vh; }
+  .top { position: fixed; left: 24px; top: 22px; right: 24px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; gap: 16px; }
+  .eyebrow { font: 500 11px/1 ui-monospace, monospace; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 6px 0 0; font: 700 clamp(22px, 3vw, 32px)/1.05 "Hiragino Sans", sans-serif; }
+  .desc { font: 400 11.5px/1.6 ui-monospace, monospace; color: var(--paper); max-width: 48ch; text-align: right; text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+  .desc b { color: var(--accent); font-weight: 500; }
+  .tabs { position: fixed; left: 24px; bottom: 24px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab, .btn { appearance: none; cursor: pointer; border: 1px solid var(--line); color: var(--paper); background: var(--panel); backdrop-filter: blur(10px); font: 700 12px/1 "Hiragino Sans", sans-serif; padding: 10px 14px; border-radius: 999px; }
+  .tab.on, .btn.on { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+  .tab:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .panel { position: fixed; right: 24px; bottom: 24px; width: 300px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .panel h2 { margin: 0 0 2px; font: 700 13px/1.2 "Hiragino Sans", sans-serif; }
+  .panel p { margin: 0 0 6px; font: 400 11px/1.5 ui-monospace, monospace; color: var(--dim); }
+  label { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px; font: 400 11px ui-monospace, monospace; color: var(--dim); letter-spacing: .04em; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn { padding: 7px 11px; font-size: 11px; }
+</style>
+<canvas id="c"></canvas>
+<div class="top">
+  <div>
+    <div class="eyebrow">three.js · cel shading · 3 approaches</div>
+    <h1>Toon Lab</h1>
+  </div>
+  <div class="desc"><b>①MeshToonMaterial</b>（gradientMapで階調化、輪郭なし）→ <b>②自前シェーダー</b>（ceil(i·steps)/steps の量子化拡散・ハードなスペキュラ・(1−N·V)^e のリムライト）→ <b>③輪郭</b>: インバーテッドハル（法線方向に膨らませて裏面描画）／深度+法線バッファのエッジ検出（ポストプロセス、ジオメトリ複製なし）</div>
+</div>
+<div class="tabs">
+  <button class="tab" data-mode="builtin">① MeshToonMaterial</button>
+  <button class="tab on" data-mode="custom">② 自前トゥーン</button>
+</div>
+<div class="panel">
+  <h2>Toon Controls</h2>
+  <p id="note">量子化拡散 + ハードスペキュラ + リム。輪郭は下で切替。</p>
+  <label>STEPS <input id="steps" type="range" min="2" max="8" step="1" value="3"></label>
+  <label>RIM POWER <input id="rimPow" type="range" min="1" max="8" step="0.1" value="3"></label>
+  <label>RIM AMOUNT <input id="rimAmt" type="range" min="0" max="1" step="0.01" value="0.55"></label>
+  <label>SPEC CUT <input id="specCut" type="range" min="0.5" max="0.99" step="0.005" value="0.9"></label>
+  <label>EDGE WIDTH <input id="edgeW" type="range" min="0" max="3" step="0.1" value="1.2"></label>
+  <label>LIGHT <input id="light" type="range" min="0" max="6.283" step="0.01" value="0.8"></label>
+  <div class="row">
+    <button class="btn" id="ol-none">輪郭なし</button>
+    <button class="btn" id="ol-hull">インバーテッドハル</button>
+    <button class="btn on" id="ol-post">深度+法線エッジ</button>
+    <button class="btn on" id="spin">回転</button>
+  </div>
+</div>
+<script>/*__BUNDLE__*/</script>

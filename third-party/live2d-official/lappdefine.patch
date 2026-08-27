@@ -1,0 +1,22 @@
+diff --git a/Samples/TypeScript/Demo/src/lappdefine.ts b/Samples/TypeScript/Demo/src/lappdefine.ts
+index 0a3366f..7b80d72 100644
+--- a/Samples/TypeScript/Demo/src/lappdefine.ts
++++ b/Samples/TypeScript/Demo/src/lappdefine.ts
+@@ -50,16 +50,7 @@ export const PowerImageName = 'CloseNormal.png';
+ // モデル定義---------------------------------------------
+ // モデルを配置したディレクトリ名の配列
+ // ディレクトリ名とmodel3.jsonの名前を一致させておくこと
+-export const ModelDir: string[] = [
+-  'Haru',
+-  'Hiyori',
+-  'Mark',
+-  'Natori',
+-  'Rice',
+-  'Mao',
+-  'Wanko',
+-  'Ren'
+-];
++export const ModelDir: string[] = ['Ren', 'Hiyori', 'Mao', 'Natori'];
+ export const ModelDirSize: number = ModelDir.length;
+ 
+ // 外部定義ファイル（json）と合わせる

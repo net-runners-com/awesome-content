@@ -1,0 +1,198 @@
+<meta charset="utf-8">
+<title>Sunset Layers</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root { --ink: #10141F; --paper: #FFF6EA; --dim: #B4B9C9; --line: rgba(255,246,234,.16); --accent: #FFB35C; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif; overflow: hidden; }
+
+  /* ================= stage ================= */
+  .stage { position: fixed; inset: 0; overflow: hidden; perspective: 1200px; }
+  .stage.exploded { background: #0b0e17; }
+  .layer { position: absolute; inset: -6% -8%; will-change: transform; transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .6s; }
+  .layer .tag { position: absolute; left: 12%; top: 10%; font: 500 11px "DM Mono", monospace; letter-spacing: .12em; color: var(--paper); background: rgba(16,20,31,.75); border: 1px solid var(--line); padding: 6px 10px; border-radius: 8px; opacity: 0; transition: opacity .4s; pointer-events: none; }
+  .stage.exploded .layer { inset: 0; transform-origin: 0 0; transform: translate(calc(8% + var(--z) * 3.2%), calc(58% - var(--z) * 4.3%)) skewY(-10deg) scale(.34) !important; box-shadow: 0 30px 60px -20px rgba(0,0,0,.7); outline: 2px solid rgba(255,246,234,.35); background-color: rgba(16,20,31,.45); }
+  .stage.exploded .layer .tag { opacity: 1; left: 101%; top: 6%; transform: scale(2.6); transform-origin: left top; white-space: nowrap; }
+  .stage.exploded .layer > *:not(.tag) { opacity: .92; }
+
+  /* z-index = 奥行き。--z は分解表示とパララックスの両方に使う */
+  #sky   { z-index: 1;  --z: 1; }
+  #sun   { z-index: 2;  --z: 2; }
+  #rays  { z-index: 3;  --z: 3; }
+  #cloud-far { z-index: 4; --z: 4; }
+  #cloud-mid { z-index: 5; --z: 5; }
+  #sea   { z-index: 6;  --z: 6; }
+  #glint { z-index: 7;  --z: 7; }
+  #waves { z-index: 8;  --z: 8; }
+  #beach { z-index: 9;  --z: 9; }
+  #cliff { z-index: 10; --z: 10; }
+  #cloud-near { z-index: 11; --z: 11; }
+  #birds { z-index: 12; --z: 12; }
+  #grade { z-index: 13; --z: 13; }
+
+  /* ---- sky ---- */
+  #sky { background: linear-gradient(180deg, #5A8BC9 0%, #7FA9D9 28%, #B9C9DF 46%, #F2C89B 60%, #F7B77A 66%, #F6D2A8 72%, #E9C9A8 100%); }
+  /* ---- sun ---- */
+  #sun .core { position: absolute; left: 50%; top: 63.5%; width: 4.2vw; height: 4.2vw; margin: -2.1vw 0 0 -2.1vw; border-radius: 50%; background: #FFF6DC; box-shadow: 0 0 40px 18px rgba(255,236,190,.95), 0 0 160px 70px rgba(255,190,110,.55), 0 0 380px 160px rgba(255,170,90,.28); animation: pulse 6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 46px 22px rgba(255,236,190,1), 0 0 180px 80px rgba(255,190,110,.6), 0 0 420px 180px rgba(255,170,90,.32); } }
+  #sun .halo { position: absolute; left: 50%; top: 63.5%; width: 70vw; height: 40vw; margin: -20vw 0 0 -35vw; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,205,140,.55), rgba(255,180,110,.18) 45%, transparent 70%); }
+  /* ---- rays ---- */
+  #rays::before { content: ""; position: absolute; left: 50%; top: 63.5%; width: 160vw; height: 160vw; margin: -80vw 0 0 -80vw; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255,230,180,.07) 0 4deg, transparent 4deg 13deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 52%); mask: radial-gradient(circle, #000 0, transparent 52%); animation: spin 90s linear infinite; mix-blend-mode: screen; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- clouds (SVG) ---- */
+  .cloud { position: absolute; width: 34vw; height: auto; }
+  .cloud svg { width: 100%; height: auto; display: block; }
+  .drift { animation: drift var(--d, 80s) linear infinite; }
+  @keyframes drift { from { transform: translateX(-4vw); } to { transform: translateX(6vw); } }
+  .drift-rev { animation: driftRev var(--d, 80s) linear infinite; }
+  @keyframes driftRev { from { transform: translateX(4vw); } to { transform: translateX(-6vw); } }
+
+  /* ---- sea ---- */
+  #sea .water { position: absolute; left: 0; right: 0; top: 66.5%; bottom: 0; background: linear-gradient(180deg, #2E5F9E 0%, #4C86C0 30%, #7FB3D4 60%, #A9C9D9 80%, #C5D6DC 100%); }
+  #sea .horizon { position: absolute; left: 0; right: 0; top: 66.5%; height: 2px; background: rgba(255,240,210,.65); box-shadow: 0 0 12px rgba(255,220,160,.6); }
+  #sea .ripple { position: absolute; left: 0; right: 0; top: 67%; height: 12%; background: repeating-linear-gradient(180deg, rgba(255,255,255,.10) 0 1px, transparent 1px 7px); opacity: .5; animation: rip 5s ease-in-out infinite; }
+  @keyframes rip { 50% { transform: translateY(2px); opacity: .35; } }
+  /* ---- sun glint on water ---- */
+  #glint .col { position: absolute; left: 50%; top: 66.5%; width: 9vw; height: 34%; margin-left: -4.5vw; background: repeating-linear-gradient(180deg, rgba(255,240,200,.95) 0 3px, rgba(255,200,140,.15) 3px 9px, transparent 9px 16px); -webkit-mask: linear-gradient(90deg, transparent, #000 35%, #000 65%, transparent) , linear-gradient(180deg, #000, transparent); -webkit-mask-composite: source-in; mask: linear-gradient(90deg, transparent, #000 35%, #000 65%, transparent), linear-gradient(180deg, #000, transparent); mask-composite: intersect; animation: glint 3.2s linear infinite; filter: blur(.6px); }
+  @keyframes glint { from { background-position: 0 0; } to { background-position: 0 32px; } }
+  #glint .beam { position: absolute; left: 50%; top: 66.5%; width: 3vw; height: 34%; margin-left: -1.5vw; background: linear-gradient(180deg, rgba(255,246,220,.9), rgba(255,210,150,.35) 40%, transparent); filter: blur(6px); }
+
+  /* ---- waves (SVG bands) ---- */
+  .wave { position: absolute; left: -10%; width: 120%; height: 9vw; }
+  .wave svg { width: 100%; height: 100%; display: block; }
+  #w1 { top: 74%; animation: waveX 9s ease-in-out infinite alternate; }
+  #w2 { top: 79%; animation: waveX 12s ease-in-out infinite alternate-reverse; }
+  #w3 { top: 84%; animation: waveX 15s ease-in-out infinite alternate; }
+  @keyframes waveX { from { transform: translateX(-2%); } to { transform: translateX(2%); } }
+  .foam { animation: foam 6s ease-in-out infinite; }
+  @keyframes foam { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-1.2vw) scaleY(1.06); } }
+
+  /* ---- beach ---- */
+  #beach .sand { position: absolute; left: 0; right: 0; top: 86%; bottom: 0; background: linear-gradient(180deg, #D9D8D0 0%, #E8DCC6 40%, #EBD7B8 100%); }
+  #beach .wet { position: absolute; left: 0; right: 0; top: 86%; height: 18%; background: linear-gradient(180deg, rgba(120,150,180,.45), rgba(200,215,225,.15) 70%, transparent); }
+  #beach .reflect { position: absolute; left: 50%; top: 86%; width: 5vw; height: 20%; margin-left: -2.5vw; background: linear-gradient(180deg, rgba(255,235,200,.85), rgba(255,220,170,.25) 60%, transparent); filter: blur(5px); }
+  #beach .edge { position: absolute; left: -5%; width: 110%; top: 85.2%; height: 4vw; animation: foam 7s ease-in-out infinite; }
+  #beach .edge svg { width: 100%; height: 100%; display: block; }
+
+  /* ---- cliff + tree ---- */
+  #cliff svg { position: absolute; right: -2%; top: 46%; width: 30vw; height: auto; }
+  #cliff .sway { transform-origin: 78% 92%; animation: sway 7s ease-in-out infinite; }
+  @keyframes sway { 50% { transform: rotate(1.6deg); } }
+  /* ---- birds ---- */
+  #birds svg { position: absolute; left: 20%; top: 30%; width: 6vw; height: auto; animation: fly 40s linear infinite; opacity: .8; }
+  #birds svg:nth-child(2) { left: 26%; top: 34%; width: 4vw; animation-duration: 52s; animation-delay: -12s; }
+  @keyframes fly { from { transform: translate(0, 0); } to { transform: translate(60vw, -6vw); } }
+  .flap { animation: flap .6s ease-in-out infinite alternate; transform-origin: center; }
+  @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(.35); } }
+  /* ---- grade (vignette / warm) ---- */
+  #grade { background: radial-gradient(120% 90% at 50% 60%, transparent 55%, rgba(30,20,40,.45)); mix-blend-mode: multiply; pointer-events: none; }
+
+  /* ================= HUD ================= */
+  .hud { position: fixed; left: 24px; bottom: 22px; display: flex; gap: 8px; align-items: center; z-index: 100; }
+  .btn { appearance: none; cursor: pointer; border: 1px solid var(--line); color: var(--paper); background: rgba(16,20,31,.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font: 700 13px/1 "Zen Kaku Gothic New", sans-serif; padding: 12px 18px; border-radius: 999px; transition: .15s; }
+  .btn.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .top { position: fixed; left: 24px; top: 20px; z-index: 100; pointer-events: none; }
+  .eyebrow { font: 500 11px "DM Mono", monospace; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+  h1 { margin: 4px 0 0; font: 700 26px/1.1 "Zen Kaku Gothic New", sans-serif; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
+  .legend { position: fixed; right: 24px; bottom: 22px; z-index: 100; font: 400 11px/1.7 "DM Mono", monospace; color: var(--paper); text-align: right; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  .legend b { color: var(--accent); font-weight: 500; }
+  </style>
+
+<div class="stage" id="stage">
+  <div class="layer" id="sky"><span class="tag">z 1 · 空 sky gradient</span></div>
+  <div class="layer" id="sun"><div class="halo"></div><div class="core"></div><span class="tag">z 2 · 太陽 + ハロ</span></div>
+  <div class="layer" id="rays"><span class="tag">z 3 · 光芒（conic-gradient・回転）</span></div>
+
+  <div class="layer" id="cloud-far">
+    <div class="cloud drift" style="left:4%;top:8%;width:22vw;--d:110s"><svg viewBox="0 0 220 90"><defs><linearGradient id="cf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F0EA"/><stop offset=".55" stop-color="#C9C7D2"/><stop offset="1" stop-color="#8E93B0"/></linearGradient></defs><g fill="url(#cf)" opacity=".85"><ellipse cx="60" cy="60" rx="58" ry="22"/><ellipse cx="120" cy="52" rx="60" ry="30"/><ellipse cx="170" cy="62" rx="46" ry="20"/><ellipse cx="95" cy="40" rx="34" ry="24"/></g></svg></div>
+    <div class="cloud drift-rev" style="left:58%;top:12%;width:18vw;--d:130s;opacity:.8"><svg viewBox="0 0 220 90"><g fill="url(#cf)"><ellipse cx="70" cy="60" rx="56" ry="20"/><ellipse cx="130" cy="54" rx="58" ry="26"/><ellipse cx="105" cy="42" rx="30" ry="20"/></g></svg></div>
+    <div class="cloud drift" style="left:74%;top:28%;width:16vw;--d:140s;opacity:.7"><svg viewBox="0 0 220 90"><g fill="url(#cf)"><ellipse cx="80" cy="60" rx="60" ry="18"/><ellipse cx="140" cy="56" rx="54" ry="22"/></g></svg></div>
+    <span class="tag">z 4 · 遠景の雲（小・薄・遅い）</span>
+  </div>
+
+  <div class="layer" id="cloud-mid">
+    <div class="cloud drift" style="left:-2%;top:30%;width:40vw;--d:95s"><svg viewBox="0 0 400 160"><defs><linearGradient id="cm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF7EC"/><stop offset=".45" stop-color="#E3DEE3"/><stop offset="1" stop-color="#8F8FB2"/></linearGradient><linearGradient id="cmEdge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFE0B8" stop-opacity="0"/><stop offset="1" stop-color="#FFD39A" stop-opacity=".9"/></linearGradient></defs><g fill="url(#cm)"><ellipse cx="90" cy="120" rx="90" ry="34"/><ellipse cx="180" cy="100" rx="90" ry="48"/><ellipse cx="290" cy="112" rx="100" ry="40"/><ellipse cx="240" cy="70" rx="60" ry="42"/><ellipse cx="140" cy="72" rx="50" ry="36"/><ellipse cx="200" cy="50" rx="40" ry="30"/></g><g fill="url(#cmEdge)" opacity=".7"><ellipse cx="300" cy="118" rx="70" ry="22"/><ellipse cx="250" cy="82" rx="40" ry="20"/></g></svg></div>
+    <div class="cloud drift-rev" style="left:56%;top:26%;width:44vw;--d:105s"><svg viewBox="0 0 400 160"><g fill="url(#cm)"><ellipse cx="110" cy="118" rx="100" ry="36"/><ellipse cx="210" cy="96" rx="96" ry="50"/><ellipse cx="310" cy="112" rx="88" ry="36"/><ellipse cx="160" cy="66" rx="52" ry="36"/><ellipse cx="260" cy="60" rx="56" ry="40"/></g><g fill="url(#cmEdge)" opacity=".75"><ellipse cx="120" cy="120" rx="60" ry="22" transform="scale(-1,1) translate(-240,0)"/><ellipse cx="200" cy="72" rx="36" ry="18"/></g></svg></div>
+    <span class="tag">z 5 · 中景の積雲（大・逆光の縁）</span>
+  </div>
+
+  <div class="layer" id="sea"><div class="water"></div><div class="ripple"></div><div class="horizon"></div><span class="tag">z 6 · 海（水平線・グラデ・さざ波）</span></div>
+  <div class="layer" id="glint"><div class="beam"></div><div class="col"></div><span class="tag">z 7 · 太陽の反射（流れるハイライト）</span></div>
+
+  <div class="layer" id="waves">
+    <div class="wave" id="w1"><svg viewBox="0 0 1200 90" preserveAspectRatio="none"><path d="M0 40 C 100 20, 200 60, 300 40 S 500 20, 600 40 S 800 60, 900 40 S 1100 20, 1200 40 L1200 90 L0 90 Z" fill="#5E94C4" opacity=".9"/><path class="foam" d="M0 44 C 100 26, 200 62, 300 44 S 500 26, 600 44 S 800 62, 900 44 S 1100 26, 1200 44" fill="none" stroke="#F4F7F7" stroke-width="3" opacity=".8"/></svg></div>
+    <div class="wave" id="w2"><svg viewBox="0 0 1200 90" preserveAspectRatio="none"><path d="M0 46 C 120 30, 220 66, 340 46 S 560 28, 680 46 S 900 66, 1020 46 S 1140 30, 1200 46 L1200 90 L0 90 Z" fill="#7FB1D2" opacity=".95"/><path class="foam" d="M0 50 C 120 34, 220 70, 340 50 S 560 32, 680 50 S 900 70, 1020 50 S 1140 34, 1200 50" fill="none" stroke="#FFFFFF" stroke-width="4" opacity=".85"/></svg></div>
+    <div class="wave" id="w3"><svg viewBox="0 0 1200 90" preserveAspectRatio="none"><path d="M0 50 C 140 34, 260 70, 400 50 S 640 32, 780 50 S 1020 70, 1160 50 L1200 50 L1200 90 L0 90 Z" fill="#A9CCDD"/><path class="foam" d="M0 54 C 140 38, 260 74, 400 54 S 640 36, 780 54 S 1020 74, 1160 54 L1200 54" fill="none" stroke="#FFFFFF" stroke-width="5" opacity=".9"/></svg></div>
+    <span class="tag">z 8 · 波 3層（横揺れ＋泡）</span>
+  </div>
+
+  <div class="layer" id="beach"><div class="sand"></div><div class="wet"></div><div class="reflect"></div><div class="edge"><svg viewBox="0 0 1200 60" preserveAspectRatio="none"><path d="M0 30 C 150 10, 300 50, 450 30 S 750 10, 900 30 S 1100 50, 1200 30 L1200 60 L0 60 Z" fill="#EEE4D0"/><path d="M0 30 C 150 10, 300 50, 450 30 S 750 10, 900 30 S 1100 50, 1200 30" fill="none" stroke="#FFFFFF" stroke-width="4" opacity=".9"/></svg></div><span class="tag">z 9 · 濡れた砂浜（鏡面反射）</span></div>
+
+  <div class="layer" id="cliff">
+    <svg viewBox="0 0 420 340">
+      <defs><linearGradient id="rock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B3D52"/><stop offset="1" stop-color="#1E1F2E"/></linearGradient><linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3F5A45"/><stop offset="1" stop-color="#1F2B2A"/></linearGradient></defs>
+      <path d="M120 340 L140 250 L190 200 L240 190 L280 150 L330 140 L360 100 L420 90 L420 340 Z" fill="url(#rock)"/>
+      <path d="M180 340 L200 300 L260 280 L300 250 L350 240 L420 210 L420 340 Z" fill="#161826" opacity=".7"/>
+      <g class="sway">
+        <path d="M330 140 C 335 110, 340 80, 360 60" stroke="#20222f" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M352 82 C 340 60, 330 56, 300 50" stroke="#20222f" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M356 70 C 372 52, 390 48, 410 40" stroke="#20222f" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <g fill="url(#leaf)"><ellipse cx="300" cy="46" rx="34" ry="16" transform="rotate(-18 300 46)"/><ellipse cx="340" cy="34" rx="42" ry="20" transform="rotate(-8 340 34)"/><ellipse cx="392" cy="30" rx="38" ry="18" transform="rotate(12 392 30)"/><ellipse cx="366" cy="60" rx="30" ry="14" transform="rotate(-24 366 60)"/><ellipse cx="410" cy="62" rx="32" ry="14" transform="rotate(20 410 62)"/><ellipse cx="320" cy="72" rx="24" ry="11" transform="rotate(-30 320 72)"/></g>
+        <g fill="#5C7B5C" opacity=".55"><ellipse cx="292" cy="40" rx="14" ry="6" transform="rotate(-18 292 40)"/><ellipse cx="330" cy="26" rx="18" ry="7" transform="rotate(-8 330 26)"/><ellipse cx="386" cy="22" rx="16" ry="6" transform="rotate(12 386 22)"/></g>
+      </g>
+      <ellipse cx="150" cy="330" rx="46" ry="12" fill="#2A2C3C"/><ellipse cx="110" cy="336" rx="28" ry="8" fill="#23253A"/>
+    </svg>
+    <span class="tag">z 10 · 前景の岩と木（シルエット・揺れ）</span>
+  </div>
+
+  <div class="layer" id="cloud-near">
+    <div class="cloud drift-rev" style="left:-6%;top:-4%;width:36vw;--d:70s"><svg viewBox="0 0 400 140"><defs><linearGradient id="cn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6B6E8C"/><stop offset=".6" stop-color="#8A8BA8"/><stop offset="1" stop-color="#C9C4CF"/></linearGradient></defs><g fill="url(#cn)"><ellipse cx="100" cy="50" rx="110" ry="46"/><ellipse cx="230" cy="40" rx="120" ry="52"/><ellipse cx="330" cy="60" rx="90" ry="40"/></g></svg></div>
+    <div class="cloud drift" style="left:60%;top:-6%;width:34vw;--d:64s"><svg viewBox="0 0 400 140"><g fill="url(#cn)"><ellipse cx="120" cy="50" rx="120" ry="46"/><ellipse cx="250" cy="44" rx="120" ry="54"/><ellipse cx="340" cy="64" rx="70" ry="34"/></g></svg></div>
+    <span class="tag">z 11 · 手前の雲（暗い下面・速い）</span>
+  </div>
+
+  <div class="layer" id="birds">
+    <svg viewBox="0 0 60 30"><g class="flap" stroke="#2E3143" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M4 18 Q 16 4, 30 18 Q 44 4, 56 18"/></g></svg>
+    <svg viewBox="0 0 60 30"><g class="flap" stroke="#2E3143" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M4 18 Q 16 4, 30 18 Q 44 4, 56 18"/></g></svg>
+    <span class="tag">z 12 · 鳥</span>
+  </div>
+  <div class="layer" id="grade"><span class="tag">z 13 · ビネット / 色調（multiply）</span></div>
+</div>
+
+<div class="top"><div class="eyebrow">CSS layers · z-index × parallax</div><h1>Sunset Layers</h1></div>
+<div class="hud">
+  <button class="btn" id="explode">レイヤー分解</button>
+  <button class="btn on" id="parallax">マウス視差 ON</button>
+</div>
+<div class="legend">13 layers · <b>z-index</b> が奥行き、<b>--z</b> が視差量<br>雲3層・波3層は速度差で遠近を作る</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const layers = [...document.querySelectorAll('.layer')];
+  let parallax = true, tx = 0, ty = 0, cx = 0, cy = 0;
+  addEventListener('pointermove', (e) => { tx = (e.clientX / innerWidth - .5) * 2; ty = (e.clientY / innerHeight - .5) * 2; });
+  function tick() {
+    cx += (tx - cx) * .04; cy += (ty - cy) * .04;
+    if (parallax && !stage.classList.contains('exploded')) {
+      for (const l of layers) {
+        const z = Number(getComputedStyle(l).getPropertyValue('--z')) || 0;
+        const k = (z - 6) / 6;                       // 海(6)を基準に前後で逆方向にずらす
+        l.style.transform = `translate(${cx * k * 22}px, ${cy * k * 12}px) scale(${1 + Math.abs(k) * .015})`;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+  document.getElementById('explode').addEventListener('click', (e) => {
+    stage.classList.toggle('exploded');
+    e.target.classList.toggle('on', stage.classList.contains('exploded'));
+    if (stage.classList.contains('exploded')) layers.forEach((l) => (l.style.transform = ''));
+  });
+  document.getElementById('parallax').addEventListener('click', (e) => {
+    parallax = !parallax; e.target.classList.toggle('on', parallax); e.target.textContent = `マウス視差 ${parallax ? 'ON' : 'OFF'}`;
+    if (!parallax) layers.forEach((l) => (l.style.transform = ''));
+  });
+</script>

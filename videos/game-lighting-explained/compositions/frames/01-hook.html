@@ -1,0 +1,389 @@
+<template>
+  <style>
+    /* Root — style via #root only (never a class on the data-composition-id element). */
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent; /* base ground painted by the .clip bg layer below, not root */
+      font-family: "Noto Sans JP", sans-serif; /* generic fallback only — no custom font ships with this
+        project (no assets/fonts/*.woff2), so no family name is declared here per the
+        font_family_without_font_face rule; weight/size/color carry the Broadside identity
+        for this CJK frame instead of a named display face. */
+      color: #f0ece5;
+    }
+
+    /* ---------- base ground (full-bleed clip, never painted on #root) ---------- */
+    .hook01-bg {
+      position: absolute;
+      inset: 0;
+      background: #111111;
+    }
+
+    /* ---------- fine hairline grid, dimmed — background role ---------- */
+    .hook01-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.4;
+      background-image: repeating-linear-gradient(
+          0deg,
+          #282826 0px,
+          #282826 1px,
+          transparent 1px,
+          transparent 64px
+        ),
+        repeating-linear-gradient(90deg, #282826 0px, #282826 1px, transparent 1px, transparent 64px);
+    }
+
+    /* ---------- Scene 1 — kinetic-beat-slam phrase build ---------- */
+    .hook01-s1 {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 0 160px;
+    }
+    .hook01-line {
+      font-size: 130px;
+      font-weight: 900;
+      line-height: 1.08;
+      color: #f0ece5;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* ---------- Scene 2 — discrete-text-sequence word swap + strike ---------- */
+    .hook01-s2 {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0; /* hidden until the seam's tl.set establishes the pre-entry pose */
+    }
+    .hook01-word-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 780px; /* >= widest state ("テクスチャ") — stops jitter, sizes the strike */
+    }
+    .hook01-word {
+      position: relative;
+      z-index: 2;
+      font-size: 150px;
+      font-weight: 900;
+      color: #f0ece5;
+      white-space: nowrap;
+    }
+    .hook01-strike {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%); /* static centering — this element never receives a
+        GSAP transform-prop tween (only its child path's strokeDashoffset animates), so no
+        gsap_css_transform_conflict */
+      width: 780px;
+      height: 200px;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .hook01-strike path {
+      fill: none;
+      stroke: #e85d26;
+      stroke-width: 16;
+      stroke-linecap: round;
+    }
+
+    /* ---------- Scene 3 — the payoff: 光, glow bloom, particle burst ---------- */
+    .hook01-s3 {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0; /* hidden until the seam's tl.set establishes the pre-entry pose */
+    }
+    .hook01-bloom-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+    .hook01-glow {
+      position: absolute;
+      inset: -160px; /* tighter than the recipe's typical -200..-450px range — this hero
+        glyph (540px) is unusually large, so a smaller absolute inset still reads as a
+        generous halo while keeping the visible falloff above the caption keep-out line */
+      z-index: 1;
+      opacity: 0;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(184, 56, 15, 0.9) 0%,
+        rgba(184, 56, 15, 0.35) 42%,
+        rgba(184, 56, 15, 0) 72%
+      ); /* darker + more saturated than the fire-orange hero glyph */
+    }
+    .hook01-particle-field {
+      position: absolute;
+      z-index: 1;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+    }
+    .hook01-particle {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border-radius: 50%;
+      opacity: 0; /* invisible until the burst event fires */
+      will-change: transform, opacity;
+    }
+    .hook01-hero {
+      position: relative;
+      z-index: 2;
+      font-size: 540px;
+      font-weight: 900;
+      line-height: 1;
+      color: #e85d26;
+    }
+  </style>
+
+  <div id="root" data-composition-id="01-hook" data-width="1920" data-height="1080" data-duration="7.554">
+    <div id="hook01-bg" class="clip hook01-bg" data-start="0" data-duration="7.554" data-track-index="0"></div>
+    <div id="hook01-grid" class="clip hook01-grid" data-start="0" data-duration="7.554" data-track-index="1"></div>
+
+    <!-- Scene 1 (0.0–2.57s): 画面の印象を決めるのは — kinetic-beat-slam, 3 distinct entrances -->
+    <div id="hook01-s1" class="clip hook01-s1" data-start="0" data-duration="2.77" data-track-index="2">
+      <div id="hook01-l1" class="hook01-line">画面の</div>
+      <div id="hook01-l2" class="hook01-line">印象を</div>
+      <div id="hook01-l3" class="hook01-line">決めるのは</div>
+    </div>
+
+    <!-- Scene 2 (2.57–4.58s): モデル / テクスチャ — hard-cut word-swap + svg strike-through -->
+    <div id="hook01-s2" class="clip hook01-s2" data-start="2.22" data-duration="2.77" data-track-index="3">
+      <div class="hook01-word-wrap">
+        <span id="hook01-word" class="hook01-word"></span>
+        <svg class="hook01-strike" viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg">
+          <path id="hook01-strike-path" d="M 30 105 L 750 95" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Scene 3 (4.86–7.554s): 光 — inverse zoom-through arrival, ambient glow bloom, particle burst -->
+    <div id="hook01-s3" class="clip hook01-s3" data-start="4.51" data-duration="3.04" data-track-index="4">
+      <div class="hook01-bloom-stage">
+        <div id="hook01-glow" class="hook01-glow"></div>
+        <div id="hook01-particle-field" class="hook01-particle-field"></div>
+        <div id="hook01-hero" class="hook01-hero">光</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      // ---- setup: svg-path-draw measurement (real geometry, not a magic number) ----
+      var strikePath = document.getElementById("hook01-strike-path");
+      var strikeLen = strikePath.getTotalLength();
+      strikePath.style.strokeDasharray = String(strikeLen);
+      strikePath.style.strokeDashoffset = String(strikeLen);
+
+      // ---- setup: particle-burst deterministic pool (index-seeded, generated once) ----
+      var field = document.getElementById("hook01-particle-field");
+      var palette = ["#e85d26", "#f0ece5", "#e85d26", "#f0ece5"];
+      var PARTICLE_COUNT = 12;
+      function prand(n) {
+        var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      }
+      var parts = [];
+      for (var i = 0; i < PARTICLE_COUNT; i++) {
+        var el = document.createElement("div");
+        el.className = "hook01-particle";
+        var size = 4 + prand(i * 3 + 1) * 4; // 4-8px dots
+        el.style.width = size + "px";
+        el.style.height = size + "px";
+        el.style.background = palette[i % palette.length];
+        field.appendChild(el);
+        var angle = prand(i * 5 + 2) * Math.PI * 2; // full radial cone (dot-burst variation)
+        var speed = 250 + prand(i * 7 + 3) * 300; // 250-550 px/s
+        parts.push({
+          el: el,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+        });
+      }
+      var G = 60; // near-0 gravity — gentle drift, not confetti fall
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // =========================================================================
+      // Scene 1 (0.0–2.57s) — kinetic-beat-slam: one shared beat grid, 3 distinct
+      // entrances building "画面の / 印象を / 決めるのは" top to bottom.
+      // =========================================================================
+      var S1_BEATS = [0.07, 0.76, 1.46];
+
+      tl.fromTo(
+        "#hook01-l1",
+        { scale: 1.5, filter: "blur(16px)", opacity: 0 },
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.69, ease: "power4.out" },
+        S1_BEATS[0],
+      );
+      tl.fromTo(
+        "#hook01-l2",
+        { x: -320, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.62, ease: "expo.out" },
+        S1_BEATS[1],
+      );
+      tl.fromTo(
+        "#hook01-l3",
+        { y: 90, rotation: 6, opacity: 0 },
+        { y: 0, rotation: 0, opacity: 1, duration: 0.76, ease: "circ.out" },
+        S1_BEATS[2],
+      ); // settles at ~2.22
+
+      // ---- Seam 1→2 (cut-the-curve, leftward, x-axis) ----
+      var SEAM1 = 2.29;
+      tl.to("#hook01-s1", { x: -230, duration: 0.42, ease: "power4.in" }, SEAM1);
+      tl.to("#hook01-s1", { opacity: 0, duration: 0.28, ease: "none" }, SEAM1);
+      tl.set("#hook01-s1", { opacity: 0 }, SEAM1 + 0.28); // hard cut at fade completion
+
+      var WORD_START = SEAM1 + 0.28; // 2.57 — same instant as the hard cut
+      tl.set("#hook01-s2", { x: 230, opacity: 0.15 }, WORD_START);
+      tl.to("#hook01-s2", { x: 0, opacity: 1, duration: 0.55, ease: "power4.out" }, WORD_START);
+
+      // =========================================================================
+      // Scene 2 (2.57–4.58s) — discrete-text-sequence hard-cut word-swap, each word
+      // struck through by an svg-path-draw stroke immediately after it lands.
+      // =========================================================================
+      var SEQUENCE = [
+        { t: 0, text: "モデル" },
+        { t: 1.18, text: "テクスチャ" },
+      ];
+      function hook01TextAt(time) {
+        for (var i = SEQUENCE.length - 1; i >= 0; i--) {
+          if (time >= SEQUENCE[i].t) return SEQUENCE[i].text;
+        }
+        return "";
+      }
+      var wordEl = document.getElementById("hook01-word");
+      var driver = { t: 0 };
+      tl.to(
+        driver,
+        {
+          t: 2.01,
+          duration: 2.01,
+          ease: "none",
+          onUpdate: function () {
+            wordEl.textContent = hook01TextAt(driver.t);
+          },
+        },
+        WORD_START,
+      );
+
+      // strike over "モデル"
+      tl.to(
+        "#hook01-strike-path",
+        { strokeDashoffset: 0, duration: 0.49, ease: "power2.out" },
+        WORD_START + 0.42,
+      ); // 2.99 -> 3.48
+
+      // instant reset, exactly matching the word's hard-cut swap (3.75)
+      tl.set("#hook01-strike-path", { strokeDashoffset: strikeLen }, WORD_START + 1.18);
+
+      // strike over "テクスチャ"
+      tl.to(
+        "#hook01-strike-path",
+        { strokeDashoffset: 0, duration: 0.49, ease: "power2.out" },
+        WORD_START + 1.39,
+      ); // 3.96 -> 4.45
+
+      // ---- Seam 2→3 (inverse zoom-through — arrival/payoff beat) ----
+      var SEAM2 = 4.58;
+      tl.to("#hook01-s2", { scale: 0.8, filter: "blur(10px)", duration: 0.28, ease: "power3.in" }, SEAM2);
+      tl.to("#hook01-s2", { opacity: 0.15, duration: 0.25, ease: "none" }, SEAM2);
+      tl.to("#hook01-grid", { opacity: 0.14, duration: 0.42, ease: "power1.in" }, SEAM2); // everything retreats
+      tl.set("#hook01-s2", { opacity: 0 }, SEAM2 + 0.28); // hard cut
+
+      var HERO_AT = SEAM2 + 0.28; // 4.86
+      tl.set("#hook01-s3", { opacity: 0.15, scale: 1.25, filter: "blur(10px)" }, HERO_AT);
+      tl.to(
+        "#hook01-s3",
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.69, ease: "expo.out" },
+        HERO_AT,
+      );
+
+      // =========================================================================
+      // Scene 3 (4.86–7.554s) — 光 arrives (payoff), ambient-glow-bloom lands with
+      // it as one beat, a small deterministic particle burst punctuates the settle,
+      // then a bounded hold with only the glow's afterglow and a subtle hero jitter.
+      // =========================================================================
+      tl.fromTo(
+        "#hook01-glow",
+        { opacity: 0, scale: 0.85 },
+        { opacity: 0.32, scale: 1, duration: 0.69, ease: "power2.out" },
+        HERO_AT,
+      ); // lands with the hero's settle at 5.55 — one beat, not glow-then-glyph
+
+      var HERO_SETTLE = HERO_AT + 0.69; // 5.55
+
+      var burstDriver = { T: 0 };
+      var FLIGHT_DUR = 0.76;
+      var FADE_FRAC = 0.3;
+      tl.fromTo(
+        burstDriver,
+        { T: 0 },
+        {
+          T: 1,
+          duration: FLIGHT_DUR,
+          ease: "none", // physics lives in the formula, not the ease
+          onUpdate: function () {
+            var t = burstDriver.T * FLIGHT_DUR;
+            var fade = Math.min(1, (1 - burstDriver.T) / FADE_FRAC);
+            for (var j = 0; j < parts.length; j++) {
+              var p = parts[j];
+              var x = p.vx * t;
+              var y = p.vy * t + 0.5 * G * t * t;
+              p.el.style.transform = "translate(" + x + "px, " + y + "px)";
+              p.el.style.opacity = String(burstDriver.T === 0 ? 0 : fade);
+            }
+          },
+        },
+        HERO_SETTLE,
+      );
+
+      // ---- hold: bounded low-amplitude hero jitter (glow rests at its afterglow) ----
+      var heroEl = document.getElementById("hook01-hero");
+      var HOLD_START = HERO_SETTLE; // 5.55
+      var HOLD_DUR = 7.554 - HOLD_START; // ~2.00s — extends hold to the padded root end (no exit tween)
+      var jitter = { p: 0 };
+      tl.to(
+        jitter,
+        {
+          p: Math.PI * 2 * 2,
+          duration: HOLD_DUR,
+          ease: "none",
+          onUpdate: function () {
+            var s = Math.sin(jitter.p);
+            var c = Math.cos(jitter.p * 1.3);
+            heroEl.style.transform = "translate(" + (s * 2.5).toFixed(2) + "px, " + (c * 2).toFixed(2) + "px)";
+          },
+        },
+        HOLD_START,
+      );
+
+      // full-span anchor so the composition's own reported duration matches data-duration
+      tl.to({}, { duration: 7.554 }, 0);
+
+      window.__timelines["01-hook"] = tl;
+    })();
+  </script>
+</template>

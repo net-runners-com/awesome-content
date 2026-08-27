@@ -1,0 +1,777 @@
+<template>
+<style>
+  @font-face {
+    font-family: "Barlow";
+    src: url("assets/fonts/Barlow_400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Barlow";
+    src: url("assets/fonts/Barlow_600.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Barlow";
+    src: url("assets/fonts/Barlow_700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Barlow";
+    src: url("assets/fonts/Barlow_800.woff2") format("woff2");
+    font-weight: 800;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Barlow";
+    src: url("assets/fonts/Barlow_900.woff2") format("woff2");
+    font-weight: 900;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "IBM Plex Mono";
+    src: url("assets/fonts/IBM_Plex_Mono_500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Noto Sans JP";
+    src: url("assets/fonts/Noto_Sans_JP_400.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+
+  #root {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    --ink: #111111;
+    --ink-alt: #1a1a18;
+    --fire: #e85d26;
+    --cream: #f0ece5;
+    --cream-muted: #888880;
+    --cream-hint: #505048;
+    --border-dark: #282826;
+    --f-display: "Barlow", system-ui, sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --f-jp: "Noto Sans JP", system-ui, sans-serif;
+  }
+
+  .clip {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ---------- background ---------- */
+  .f05-groundfill {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+  }
+  .f05-grid-wrap {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  /* ---------- rays ---------- */
+  .f05-rays-wrap {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  /* ---------- heading ---------- */
+  .f05-rule {
+    position: absolute;
+    left: 104px;
+    top: 76px;
+    width: 36px;
+    height: 2px;
+    background: var(--fire);
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  .f05-kicker {
+    position: absolute;
+    left: 104px;
+    top: 92px;
+    font-family: var(--f-mono);
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fire);
+    opacity: 0;
+  }
+  .f05-h3 {
+    position: absolute;
+    left: 104px;
+    top: 134px;
+    font-family: var(--f-jp);
+    font-weight: 700;
+    font-size: 62px;
+    line-height: 1.15;
+    color: var(--cream);
+    opacity: 0;
+  }
+
+  /* ---------- origin tag ---------- */
+  .f05-origin-tag {
+    position: absolute;
+    right: 104px;
+    top: 78px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    opacity: 0;
+  }
+  .f05-origin-inf {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 32px;
+    color: var(--fire);
+  }
+  .f05-origin-label {
+    font-family: var(--f-mono);
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+  }
+
+  /* ---------- chips ---------- */
+  .f05-chip {
+    position: absolute;
+    top: 190px;
+    width: 148px;
+    height: 64px;
+    background: var(--ink-alt);
+    border: 1px solid var(--border-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+  }
+  .f05-chip-sun {
+    right: 268px;
+  }
+  .f05-chip-moon {
+    right: 104px;
+  }
+  .f05-chip-label {
+    font-family: var(--f-jp);
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--cream);
+  }
+
+  /* ---------- position glyph ---------- */
+  .f05-position-wrap {
+    position: absolute;
+    left: 674px;
+    top: 434px;
+    width: 92px;
+    height: 92px;
+    opacity: 0;
+  }
+  .f05-position-label {
+    position: absolute;
+    left: 620px;
+    top: 534px;
+    width: 200px;
+    font-family: var(--f-mono);
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+    opacity: 0;
+  }
+
+  /* ---------- vector ---------- */
+  .f05-vector-svg {
+    position: absolute;
+    inset: 0;
+  }
+  .f05-vector-badge {
+    position: absolute;
+    left: 1318px;
+    top: 258px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--fire);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+  .f05-vector-badge span {
+    font-family: var(--f-mono);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .f05-vector-label-wrap {
+    position: absolute;
+    left: 1318px;
+    top: 210px;
+    opacity: 0;
+  }
+  .f05-vector-label {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+    text-shadow: 0 0 0 rgba(232, 93, 38, 0);
+    transform-origin: left center;
+  }
+
+  /* ---------- cubes ---------- */
+  .f05-cube-unit {
+    position: absolute;
+    top: 0;
+    width: 220px;
+    height: 862px;
+  }
+  .f05-cube-far {
+    left: 452px;
+  }
+  .f05-cube-mid {
+    left: 850px;
+  }
+  .f05-cube-near {
+    left: 1250px;
+  }
+  .f05-cube-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 548px;
+    text-align: center;
+    font-family: var(--f-jp);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--cream-muted);
+    opacity: 0;
+  }
+  .f05-counter-wrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 572px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    width: 100%;
+  }
+  .f05-counter {
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    font-family: var(--f-display);
+    font-weight: 900;
+    font-size: 88px;
+    letter-spacing: -0.02em;
+    color: var(--fire);
+    transform-origin: center center;
+  }
+  .f05-counter-suffix {
+    font-family: var(--f-display);
+    font-weight: 900;
+    font-size: 46px;
+    color: var(--fire);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .f05-cube-icon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    transform-origin: center bottom;
+  }
+  .f05-cube-icon svg {
+    display: block;
+  }
+  .f05-nofalloff {
+    position: absolute;
+    left: 1560px;
+    top: 590px;
+    width: 220px;
+    padding: 14px 18px;
+    background: var(--ink-alt);
+    border-top: 2px solid var(--fire);
+    opacity: 0;
+  }
+  .f05-nofalloff span {
+    font-family: var(--f-jp);
+    font-weight: 700;
+    font-size: 21px;
+    color: var(--cream);
+  }
+</style>
+
+<div
+  id="root"
+  data-composition-id="05-directional-nature"
+  data-start="0"
+  data-duration="15.747"
+  data-width="1920"
+  data-height="1080"
+>
+  <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+    <defs>
+      <filter id="f05-streak-filter" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur id="f05-streak-blur" in="SourceGraphic" stdDeviation="0 0" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- background: ground + grid horizon -->
+  <div class="clip" id="f05-bg" data-start="0" data-duration="15.747" data-track-index="0">
+    <div class="f05-groundfill"></div>
+    <div class="f05-grid-wrap" id="f05-grid-wrap">
+      <svg viewBox="0 0 1920 1080" width="1920" height="1080">
+        <g stroke="#505048" stroke-width="1.5" fill="none">
+          <line x1="772" y1="640" x2="1148" y2="640" />
+          <line x1="689" y1="675" x2="1231" y2="675" />
+          <line x1="594" y1="715" x2="1326" y2="715" />
+          <line x1="486" y1="760" x2="1434" y2="760" />
+          <line x1="362" y1="812" x2="1558" y2="812" />
+          <line x1="219" y1="872" x2="1701" y2="872" />
+        </g>
+        <g stroke="#282826" stroke-width="1.5" fill="none">
+          <line x1="960" y1="600" x2="300" y2="880" />
+          <line x1="960" y1="600" x2="540" y2="880" />
+          <line x1="960" y1="600" x2="780" y2="880" />
+          <line x1="960" y1="600" x2="960" y2="880" />
+          <line x1="960" y1="600" x2="1140" y2="880" />
+          <line x1="960" y1="600" x2="1380" y2="880" />
+          <line x1="960" y1="600" x2="1620" y2="880" />
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- parallel ray bundle (focal, full-width) -->
+  <div class="clip" id="f05-rays" data-start="0" data-duration="15.747" data-track-index="1">
+    <div class="f05-rays-wrap" id="f05-rays-wrap" style="filter: url(#f05-streak-filter)">
+      <svg viewBox="0 0 1920 1080" width="1920" height="1080">
+        <g stroke="#e85d26" stroke-linecap="round">
+          <line x1="1600" y1="-150" x2="-720" y2="1115" stroke-width="2" opacity="0.14" />
+          <line x1="2000" y1="-150" x2="-320" y2="1115" stroke-width="3" opacity="0.22" />
+          <line x1="2400" y1="-150" x2="80" y2="1115" stroke-width="2" opacity="0.16" />
+          <line x1="2800" y1="-150" x2="480" y2="1115" stroke-width="5" opacity="0.32" />
+          <line x1="3200" y1="-150" x2="880" y2="1115" stroke-width="2" opacity="0.18" />
+          <line x1="3600" y1="-150" x2="1280" y2="1115" stroke-width="3" opacity="0.24" />
+          <line x1="4000" y1="-150" x2="1680" y2="1115" stroke-width="6" opacity="0.36" />
+          <line x1="4400" y1="-150" x2="2080" y2="1115" stroke-width="2" opacity="0.16" />
+          <line x1="4800" y1="-150" x2="2480" y2="1115" stroke-width="3" opacity="0.20" />
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- eyebrow + h3 chrome -->
+  <div class="clip" id="f05-heading" data-start="0" data-duration="15.747" data-track-index="2">
+    <div class="f05-rule" id="f05-rule"></div>
+    <div class="f05-kicker" id="f05-kicker">02 &mdash; DIRECTIONAL LIGHT</div>
+    <div class="f05-h3" id="f05-h3">平行光線</div>
+  </div>
+
+  <!-- origin / infinity tag -->
+  <div class="clip" id="f05-origin" data-start="0" data-duration="15.747" data-track-index="3">
+    <div class="f05-origin-tag" id="f05-origin-tag">
+      <span class="f05-origin-inf">&infin;</span>
+      <span class="f05-origin-label">ORIGIN &mdash; INFINITY</span>
+    </div>
+  </div>
+
+  <!-- chips: sun / moon -->
+  <div class="clip" id="f05-chips" data-start="4.3" data-duration="11.447" data-track-index="4">
+    <div class="f05-chip f05-chip-sun" id="f05-chip-sun">
+      <svg width="26" height="26" viewBox="-13 -13 26 26" aria-hidden="true">
+        <circle cx="0" cy="0" r="6" fill="#e85d26" />
+        <g stroke="#e85d26" stroke-width="2" stroke-linecap="round">
+          <line x1="0" y1="-12" x2="0" y2="-9" />
+          <line x1="0" y1="9" x2="0" y2="12" />
+          <line x1="-12" y1="0" x2="-9" y2="0" />
+          <line x1="9" y1="0" x2="12" y2="0" />
+          <line x1="-8.5" y1="-8.5" x2="-6.4" y2="-6.4" />
+          <line x1="6.4" y1="6.4" x2="8.5" y2="8.5" />
+          <line x1="-8.5" y1="8.5" x2="-6.4" y2="6.4" />
+          <line x1="6.4" y1="-6.4" x2="8.5" y2="-8.5" />
+        </g>
+      </svg>
+      <span class="f05-chip-label">太陽</span>
+    </div>
+    <div class="f05-chip f05-chip-moon" id="f05-chip-moon">
+      <svg width="24" height="24" viewBox="-12 -12 24 24" aria-hidden="true">
+        <path d="M 6,-10 A 10,10 0 1 0 6,10 A 8,8 0 1 1 6,-10 Z" fill="#e85d26" />
+      </svg>
+      <span class="f05-chip-label">月</span>
+    </div>
+  </div>
+
+  <!-- position glyph: negated -->
+  <div class="clip" id="f05-position" data-start="4.3" data-duration="11.447" data-track-index="5">
+    <div class="f05-position-wrap" id="f05-position-wrap">
+      <svg viewBox="-46 -46 92 92" width="92" height="92">
+        <circle cx="0" cy="0" r="32" fill="none" stroke="#f0ece5" stroke-width="4" />
+        <line
+          id="f05-position-strike"
+          x1="-23"
+          y1="-23"
+          x2="23"
+          y2="23"
+          stroke="#e85d26"
+          stroke-width="5"
+          stroke-linecap="round"
+          pathLength="1"
+          stroke-dasharray="1"
+          stroke-dashoffset="1"
+        />
+      </svg>
+    </div>
+    <div class="f05-position-label" id="f05-position-label">POSITION</div>
+  </div>
+
+  <!-- direction vector L -->
+  <div class="clip" id="f05-vector" data-start="4.3" data-duration="11.447" data-track-index="6">
+    <svg class="f05-vector-svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+      <line
+        id="f05-vector-line"
+        x1="1300"
+        y1="320"
+        x2="685"
+        y2="655"
+        stroke="#e85d26"
+        stroke-width="10"
+        stroke-linecap="round"
+        pathLength="1"
+        stroke-dasharray="1"
+        stroke-dashoffset="1"
+      />
+      <polygon
+        id="f05-vector-arrowhead"
+        points="685,655 698,633 711,656"
+        fill="#e85d26"
+        opacity="0"
+        style="transform-origin: 698px 648px"
+      />
+    </svg>
+    <div class="f05-vector-badge" id="f05-vector-badge"><span>L</span></div>
+    <div class="f05-vector-label-wrap" id="f05-vector-label-wrap">
+      <span class="f05-vector-label" id="f05-vector-label">DIRECTION ONLY</span>
+    </div>
+  </div>
+
+  <!-- three cubes: near / mid / far, equal brightness -->
+  <div class="clip" id="f05-cubes" data-start="8.71" data-duration="7.037" data-track-index="7">
+    <div class="f05-cube-unit f05-cube-far">
+      <div class="f05-cube-label" id="f05-label-far">遠</div>
+      <div class="f05-counter-wrap" style="width: 240px; margin: 0 auto">
+        <span class="f05-counter" id="f05-counter-far">0</span
+        ><span class="f05-counter-suffix" id="f05-suffix-far">%</span>
+      </div>
+      <div class="f05-cube-icon" id="f05-cube-icon-far" style="height: 96px">
+        <svg viewBox="-45 -45 90 90" width="90" height="90">
+          <polygon
+            points="0,-45 39,-22.5 39,22.5 0,45 -39,22.5 -39,-22.5"
+            fill="none"
+            stroke="#e85d26"
+            stroke-width="2.5"
+          />
+          <line x1="0" y1="0" x2="0" y2="-45" stroke="#e85d26" stroke-width="2" />
+          <line x1="0" y1="0" x2="39" y2="22.5" stroke="#e85d26" stroke-width="2" />
+          <line x1="0" y1="0" x2="-39" y2="22.5" stroke="#e85d26" stroke-width="2" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="f05-cube-unit f05-cube-mid">
+      <div class="f05-cube-label" id="f05-label-mid">中</div>
+      <div class="f05-counter-wrap" style="width: 240px; margin: 0 auto">
+        <span class="f05-counter" id="f05-counter-mid">0</span
+        ><span class="f05-counter-suffix" id="f05-suffix-mid">%</span>
+      </div>
+      <div class="f05-cube-icon" id="f05-cube-icon-mid" style="height: 130px">
+        <svg viewBox="-62 -62 124 124" width="124" height="124">
+          <polygon
+            points="0,-62 54,-31 54,31 0,62 -54,31 -54,-31"
+            fill="none"
+            stroke="#e85d26"
+            stroke-width="3"
+          />
+          <line x1="0" y1="0" x2="0" y2="-62" stroke="#e85d26" stroke-width="2.5" />
+          <line x1="0" y1="0" x2="54" y2="31" stroke="#e85d26" stroke-width="2.5" />
+          <line x1="0" y1="0" x2="-54" y2="31" stroke="#e85d26" stroke-width="2.5" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="f05-cube-unit f05-cube-near">
+      <div class="f05-cube-label" id="f05-label-near">近</div>
+      <div class="f05-counter-wrap" style="width: 240px; margin: 0 auto">
+        <span class="f05-counter" id="f05-counter-near">0</span
+        ><span class="f05-counter-suffix" id="f05-suffix-near">%</span>
+      </div>
+      <div class="f05-cube-icon" id="f05-cube-icon-near" style="height: 172px">
+        <svg viewBox="-82 -82 164 164" width="164" height="164">
+          <polygon
+            points="0,-82 71,-41 71,41 0,82 -71,41 -71,-41"
+            fill="none"
+            stroke="#e85d26"
+            stroke-width="3.5"
+          />
+          <line x1="0" y1="0" x2="0" y2="-82" stroke="#e85d26" stroke-width="3" />
+          <line x1="0" y1="0" x2="71" y2="41" stroke="#e85d26" stroke-width="3" />
+          <line x1="0" y1="0" x2="-71" y2="41" stroke="#e85d26" stroke-width="3" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="f05-nofalloff" id="f05-nofalloff">
+      <span>減衰なし</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+  (function () {
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+
+    // ---------- Scene 1: rays streak-in (motion-blur-streak) ----------
+    const blurNode = document.getElementById("f05-streak-blur");
+    const blurProxy = { v: 20 };
+    const writeBlur = () => blurNode.setAttribute("stdDeviation", blurProxy.v + " 0");
+    writeBlur(); // seed frame 0 with the streaked start
+
+    tl.fromTo(
+      "#f05-rays-wrap",
+      { x: 170, y: -120, opacity: 0 },
+      { x: 0, y: 0, opacity: 1, duration: 0.55, ease: "power4.out" },
+      0,
+    );
+    tl.to(blurProxy, { v: 0, duration: 0.55, ease: "power4.out", onUpdate: writeBlur }, 0);
+
+    tl.to("#f05-grid-wrap", { opacity: 0.55, duration: 0.55, ease: "power2.out" }, 0.17);
+
+    tl.fromTo(
+      "#f05-rule",
+      { scaleX: 0, opacity: 0 },
+      { scaleX: 1, opacity: 1, duration: 0.39, ease: "power2.out" },
+      0.33,
+    );
+    tl.fromTo(
+      "#f05-kicker",
+      { x: -14, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.39, ease: "power2.out" },
+      0.37,
+    );
+    tl.fromTo(
+      "#f05-h3",
+      { y: 22, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" },
+      0.55,
+    );
+    tl.fromTo(
+      "#f05-origin-tag",
+      { x: 16, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.44, ease: "power2.out" },
+      1.1,
+    );
+
+    // ---------- Scene 2 (4.3s - 8.71s): chips, position negated, vector L ----------
+    tl.fromTo(
+      "#f05-chip-sun",
+      { scale: 0.9, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.1, ease: "power1.out" },
+      4.3,
+    );
+    tl.fromTo(
+      "#f05-chip-moon",
+      { scale: 0.9, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.1, ease: "power1.out" },
+      4.37,
+    );
+
+    tl.fromTo(
+      "#f05-position-wrap",
+      { scale: 0.7, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.39, ease: "power3.out" },
+      4.8,
+    );
+    tl.fromTo(
+      "#f05-position-label",
+      { y: 8, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.39, ease: "power2.out" },
+      4.85,
+    );
+
+    tl.fromTo(
+      "#f05-position-strike",
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" },
+      5.62,
+    );
+    tl.to("#f05-position-wrap", { opacity: 0.55, duration: 0.5, ease: "power2.out" }, 5.62);
+
+    tl.fromTo(
+      "#f05-vector-line",
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 0.66, ease: "power3.out" },
+      6.34,
+    );
+    tl.fromTo(
+      "#f05-vector-arrowhead",
+      { opacity: 0, scale: 0.5 },
+      { opacity: 1, scale: 1, duration: 0.28, ease: "back.out(1.6)" },
+      6.95,
+    );
+    tl.fromTo(
+      "#f05-vector-badge",
+      { scale: 0.6, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.33, ease: "back.out(1.5)" },
+      7,
+    );
+    tl.fromTo(
+      "#f05-vector-label-wrap",
+      { x: -8, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.39, ease: "power2.out" },
+      7.11,
+    );
+
+    // asr-keyword-glow: vector L emphasis, single driver over a 1.32s window
+    const glowLine = document.getElementById("f05-vector-line");
+    const glowLabel = document.getElementById("f05-vector-label");
+    const glowBadge = document.getElementById("f05-vector-badge");
+    const GLOW_ATTACK = 0.2;
+    const GLOW_RELEASE = 0.39;
+    const GLOW_REST = 0.22;
+    function glowEnvelope(t, start, end) {
+      if (t < start) return 0;
+      if (t < end) return Math.min((t - start) / GLOW_ATTACK, 1);
+      const releaseEnd = end + GLOW_RELEASE;
+      if (t < releaseEnd) return 1 - ((t - end) / GLOW_RELEASE) * (1 - GLOW_REST);
+      return GLOW_REST;
+    }
+    const glowDriver = { t: 0 };
+    tl.to(
+      glowDriver,
+      {
+        t: 1.32,
+        duration: 1.32,
+        ease: "none",
+        onUpdate: () => {
+          const env = glowEnvelope(glowDriver.t, 0.17, 0.72);
+          glowLabel.style.textShadow = `0 0 ${24 * env}px rgba(232,93,38,${0.25 + 0.7 * env})`;
+          glowLabel.style.transform = `scale(${1 + 0.14 * env})`;
+          glowLine.setAttribute("stroke-width", String(10 + 3 * env));
+          glowLine.style.filter = `drop-shadow(0 0 ${9 * env}px rgba(232,93,38,${0.3 + 0.55 * env}))`;
+          glowBadge.style.filter = `drop-shadow(0 0 ${9 * env}px rgba(232,93,38,${0.4 * env}))`;
+        },
+      },
+      7.55,
+    );
+
+    // ---------- Scene 3 (8.71s - 13.01s): three cubes, equal brightness counters ----------
+    tl.fromTo(
+      "#f05-cube-icon-far",
+      { scale: 0.6, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.33, ease: "power3.out" },
+      8.76,
+    );
+    tl.fromTo(
+      "#f05-cube-icon-mid",
+      { scale: 0.6, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.33, ease: "power3.out" },
+      8.9,
+    );
+    tl.fromTo(
+      "#f05-cube-icon-near",
+      { scale: 0.6, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.33, ease: "power3.out" },
+      9.03,
+    );
+    tl.from("#f05-label-far", { opacity: 0, y: 12, duration: 0.55, ease: "power2.out" }, 8.76);
+    tl.from("#f05-label-mid", { opacity: 0, y: 12, duration: 0.55, ease: "power2.out" }, 8.9);
+    tl.from("#f05-label-near", { opacity: 0, y: 12, duration: 0.55, ease: "power2.out" }, 9.03);
+
+    // counting-dynamic-scale: three counters, shared timing = one chord
+    const COUNT_START = 8.93;
+    const COUNT_DUR = 1.98;
+    const COUNT_EASE = "power3.out";
+    const START_SIZE = 40;
+    const END_SIZE = 88;
+    const START_SCALE = START_SIZE / END_SIZE;
+
+    ["far", "mid", "near"].forEach((depth) => {
+      const counterEl = document.getElementById("f05-counter-" + depth);
+      const suffixEl = document.getElementById("f05-suffix-" + depth);
+      const state = { value: 0 };
+      tl.to(
+        state,
+        {
+          value: 100,
+          duration: COUNT_DUR,
+          ease: COUNT_EASE,
+          onUpdate: () => {
+            counterEl.textContent = Math.round(state.value).toLocaleString();
+          },
+        },
+        COUNT_START,
+      );
+      tl.fromTo(
+        counterEl,
+        { scale: START_SCALE },
+        { scale: 1, duration: COUNT_DUR, ease: COUNT_EASE },
+        COUNT_START,
+      );
+      tl.to(
+        suffixEl,
+        { opacity: 1, y: 0, duration: 0.44, ease: "back.out(1.6)" },
+        COUNT_START + COUNT_DUR,
+      );
+    });
+
+    tl.fromTo(
+      "#f05-nofalloff",
+      { y: 10, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" },
+      11.41,
+    );
+
+    // ---------- Scene 4 (13.01s - 15.147s): hold, subtle jitter on the ray bundle ----------
+    tl.to("#f05-rays-wrap", { x: 4, duration: 0.44, ease: "sine.inOut" }, 13.12);
+    tl.to("#f05-rays-wrap", { x: -3, duration: 0.55, ease: "sine.inOut" }, 13.56);
+    tl.to("#f05-rays-wrap", { x: 2, duration: 0.55, ease: "sine.inOut" }, 14.11);
+    tl.to("#f05-rays-wrap", { x: 0, duration: 1.087, ease: "sine.inOut" }, 14.66);
+
+    window.__timelines["05-directional-nature"] = tl;
+  })();
+</script>
+</template>

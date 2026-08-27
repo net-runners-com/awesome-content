@@ -1,0 +1,715 @@
+<template>
+  <style>
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: none;
+      font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #f0ece5;
+    }
+
+    /* ---- background (full-bleed, on its own clip layer, never on #root) ---- */
+    .x04-point-math-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, rgba(240, 236, 229, 0.035) 0px, rgba(240, 236, 229, 0.035) 1px, transparent 1px, transparent 96px),
+        repeating-linear-gradient(90deg, rgba(240, 236, 229, 0.035) 0px, rgba(240, 236, 229, 0.035) 1px, transparent 1px, transparent 96px),
+        #111111;
+    }
+
+    /* ---- world (foreground content, the element the camera push moves) ---- */
+    .x04-point-math-world {
+      position: absolute;
+      inset: 0;
+      transform-origin: 65% 43%;
+    }
+
+    /* ---- kicker ---- */
+    .x04-point-math-kicker-wrap {
+      position: absolute;
+      left: 100px;
+      top: 110px;
+      width: 520px;
+      height: 30px;
+    }
+    .x04-point-math-kicker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: nowrap;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #e85d26;
+      opacity: 0;
+    }
+    #x04-point-math-kicker-b {
+      opacity: 0;
+    }
+
+    /* ---- left column ---- */
+    .x04-point-math-left-col {
+      position: absolute;
+      left: 100px;
+      top: 168px;
+      width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .x04-point-math-formula1,
+    .x04-point-math-formula2 {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .x04-point-math-formula2 {
+      gap: 16px;
+    }
+
+    .x04-point-math-f-token {
+      display: inline-block;
+      font-weight: 800;
+      color: #f0ece5;
+      line-height: 1;
+      opacity: 0;
+    }
+    .x04-point-math-formula1 .x04-point-math-f-token {
+      font-size: 92px;
+    }
+    .x04-point-math-formula2 .x04-point-math-f-token {
+      font-size: 56px;
+    }
+
+    .x04-point-math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .x04-point-math-frac-num,
+    .x04-point-math-frac-den {
+      display: block;
+      text-align: center;
+      font-weight: 800;
+      color: #f0ece5;
+      line-height: 1.05;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .x04-point-math-formula1 .x04-point-math-frac-num,
+    .x04-point-math-formula1 .x04-point-math-frac-den {
+      font-size: 60px;
+    }
+    .x04-point-math-formula2 .x04-point-math-frac-num {
+      font-size: 40px;
+    }
+    .x04-point-math-frac-den-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.18em;
+      white-space: nowrap;
+    }
+    .x04-point-math-formula2 .x04-point-math-frac-den-row span {
+      font-size: 34px;
+      font-weight: 700;
+      color: #f0ece5;
+      opacity: 0;
+    }
+    .x04-point-math-formula2 .x04-point-math-frac-den-row .x04-point-math-plus {
+      color: #888880;
+      font-weight: 600;
+    }
+    .x04-point-math-frac-line {
+      display: block;
+      height: 4px;
+      margin: 8px 0;
+      background: #e85d26;
+      transform: scaleX(0);
+      transform-origin: center;
+    }
+    .x04-point-math-formula2 .x04-point-math-frac-line {
+      height: 3px;
+      margin: 6px 0;
+    }
+
+    .x04-point-math-formula1 sub,
+    .x04-point-math-formula1 sup,
+    .x04-point-math-formula2 sub,
+    .x04-point-math-formula2 sup {
+      font-size: 0.5em;
+    }
+    .x04-point-math-formula1 sub,
+    .x04-point-math-formula2 sub {
+      vertical-align: -0.25em;
+    }
+    .x04-point-math-formula1 sup,
+    .x04-point-math-formula2 sup {
+      vertical-align: 0.55em;
+    }
+
+    /* ---- d-track ---- */
+    .x04-point-math-dtrack {
+      position: relative;
+      width: 400px;
+      height: 46px;
+      opacity: 0;
+    }
+    .x04-point-math-dtrack-line {
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 320px;
+      height: 2px;
+      background: #505048;
+    }
+    .x04-point-math-dtrack-tick {
+      position: absolute;
+      top: 18px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 16px;
+      letter-spacing: 0.05em;
+      color: #888880;
+      white-space: nowrap;
+    }
+    .x04-point-math-dtrack-tick-1 {
+      left: 0;
+    }
+    .x04-point-math-dtrack-tick-2 {
+      left: 320px;
+      transform: translateX(-100%);
+    }
+    .x04-point-math-dtrack-marker {
+      position: absolute;
+      left: -6px;
+      top: -4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e85d26;
+    }
+
+    /* ---- brightness counter ---- */
+    .x04-point-math-counter-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .x04-point-math-counter {
+      font-variant-numeric: tabular-nums;
+      display: inline-block;
+      width: 260px;
+      font-size: 104px;
+      font-weight: 800;
+      color: #f0ece5;
+      line-height: 1;
+      transform-origin: left center;
+    }
+    .x04-point-math-counter-suffix {
+      display: inline-block;
+      font-size: 48px;
+      font-weight: 700;
+      color: #f0ece5;
+      opacity: 0;
+    }
+    .x04-point-math-counter-label {
+      margin-top: 8px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888880;
+      opacity: 0;
+    }
+
+    /* ---- graph ---- */
+    .x04-point-math-graph-wrap {
+      position: absolute;
+      left: 1040px;
+      top: 150px;
+      width: 760px;
+      height: 650px;
+      opacity: 0;
+    }
+    .x04-point-math-graph-wrap svg {
+      width: 760px;
+      height: 650px;
+      overflow: visible;
+    }
+    .x04-point-math-axis {
+      stroke: #505048;
+      stroke-width: 2;
+      fill: none;
+    }
+    .x04-point-math-grid {
+      stroke: #282826;
+      stroke-width: 1;
+      fill: none;
+      opacity: 0.7;
+    }
+    .x04-point-math-curve {
+      fill: none;
+      stroke: #e85d26;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #x04-point-math-curve-tail {
+      --dof: 0px;
+      filter: blur(var(--dof));
+    }
+    .x04-point-math-curve-alt {
+      fill: none;
+      stroke: #888880;
+      stroke-width: 3;
+      stroke-linecap: round;
+      opacity: 0;
+    }
+    .x04-point-math-cutoff-line {
+      stroke: #888880;
+      stroke-width: 2;
+      stroke-dasharray: 10 8;
+    }
+    .x04-point-math-dim-rect {
+      fill: #111111;
+      opacity: 0;
+    }
+    .x04-point-math-tick-dot {
+      fill: #e85d26;
+      opacity: 0;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+    .x04-point-math-tag-label {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      fill: #f0ece5;
+      opacity: 0;
+    }
+    .x04-point-math-skip-label {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      fill: #e85d26;
+      opacity: 0;
+    }
+    .x04-point-math-axis-static {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      fill: #505048;
+      opacity: 0.9;
+    }
+  </style>
+
+  <div id="root" data-composition-id="04-point-math" data-width="1920" data-height="1080" data-duration="14.64">
+    <div
+      id="x04-point-math-bg"
+      class="clip x04-point-math-bg"
+      data-start="0"
+      data-duration="14.64"
+      data-track-index="0"
+    ></div>
+
+    <div
+      id="x04-point-math-world"
+      class="clip x04-point-math-world"
+      data-start="0"
+      data-duration="14.64"
+      data-track-index="1"
+    >
+      <div class="x04-point-math-kicker-wrap">
+        <span id="x04-point-math-kicker-a" class="x04-point-math-kicker">PHYSICS &mdash; INVERSE SQUARE</span>
+        <span id="x04-point-math-kicker-b" class="x04-point-math-kicker">ENGINE &mdash; ATTENUATION</span>
+      </div>
+
+      <div class="x04-point-math-left-col">
+        <div class="x04-point-math-formula1">
+          <span id="x04-point-math-f1-i" class="x04-point-math-f-token">I</span>
+          <span id="x04-point-math-f1-eq" class="x04-point-math-f-token">=</span>
+          <span class="x04-point-math-frac">
+            <span id="x04-point-math-f1-num" class="x04-point-math-frac-num">I<sub>0</sub></span>
+            <span id="x04-point-math-f1-line" class="x04-point-math-frac-line"></span>
+            <span id="x04-point-math-f1-den" class="x04-point-math-frac-den">d<sup>2</sup></span>
+          </span>
+        </div>
+
+        <div>
+          <div id="x04-point-math-dtrack" class="x04-point-math-dtrack">
+            <div class="x04-point-math-dtrack-line"></div>
+            <div class="x04-point-math-dtrack-tick x04-point-math-dtrack-tick-1">d = 1</div>
+            <div class="x04-point-math-dtrack-tick x04-point-math-dtrack-tick-2">d = 2</div>
+            <div id="x04-point-math-dtrack-marker" class="x04-point-math-dtrack-marker"></div>
+          </div>
+          <div class="x04-point-math-counter-wrap" id="x04-point-math-counter-wrap">
+            <span id="x04-point-math-counter" class="x04-point-math-counter">100</span
+            ><span id="x04-point-math-counter-suffix" class="x04-point-math-counter-suffix">%</span>
+          </div>
+          <div id="x04-point-math-counter-label" class="x04-point-math-counter-label">Brightness</div>
+        </div>
+
+        <div class="x04-point-math-formula2">
+          <span id="x04-point-math-f2-att" class="x04-point-math-f-token">att</span>
+          <span id="x04-point-math-f2-eq" class="x04-point-math-f-token">=</span>
+          <span class="x04-point-math-frac">
+            <span id="x04-point-math-f2-num" class="x04-point-math-frac-num">1</span>
+            <span id="x04-point-math-f2-line" class="x04-point-math-frac-line"></span>
+            <span class="x04-point-math-frac-den-row">
+              <span id="x04-point-math-f2-kc">K<sub>c</sub></span>
+              <span id="x04-point-math-f2-plus1" class="x04-point-math-plus">+</span>
+              <span id="x04-point-math-f2-kld">K<sub>l</sub>d</span>
+              <span id="x04-point-math-f2-plus2" class="x04-point-math-plus">+</span>
+              <span id="x04-point-math-f2-kqd2">K<sub>q</sub>d<sup>2</sup></span>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div id="x04-point-math-graph-wrap" class="x04-point-math-graph-wrap">
+        <svg viewBox="0 0 760 650" xmlns="http://www.w3.org/2000/svg">
+          <line id="x04-point-math-grid-25" class="x04-point-math-grid" x1="70" y1="445" x2="740" y2="445"></line>
+          <line id="x04-point-math-grid-50" class="x04-point-math-grid" x1="70" y1="300" x2="740" y2="300"></line>
+          <line id="x04-point-math-grid-75" class="x04-point-math-grid" x1="70" y1="155" x2="740" y2="155"></line>
+
+          <line id="x04-point-math-axis-y" class="x04-point-math-axis" x1="70" y1="10" x2="70" y2="590"></line>
+          <line id="x04-point-math-axis-x" class="x04-point-math-axis" x1="70" y1="590" x2="740" y2="590"></line>
+
+          <path id="x04-point-math-curve-alt" class="x04-point-math-curve-alt" d=""></path>
+          <path id="x04-point-math-curve-head" class="x04-point-math-curve" d=""></path>
+          <path id="x04-point-math-curve-tail" class="x04-point-math-curve" d=""></path>
+
+          <circle id="x04-point-math-tick-d1" class="x04-point-math-tick-dot" cx="70" cy="10" r="7"></circle>
+          <circle id="x04-point-math-tick-d2" class="x04-point-math-tick-dot" cx="204" cy="155" r="7"></circle>
+          <text id="x04-point-math-tick-d1-label" class="x04-point-math-tag-label" x="82" y="4">100%</text>
+          <text id="x04-point-math-tick-d2-label" class="x04-point-math-tag-label" x="216" y="149">25%</text>
+
+          <line
+            id="x04-point-math-cutoff-line"
+            class="x04-point-math-cutoff-line"
+            x1="539"
+            y1="10"
+            x2="539"
+            y2="10"
+          ></line>
+          <rect id="x04-point-math-dim-rect" class="x04-point-math-dim-rect" x="539" y="10" width="201" height="580"></rect>
+          <text id="x04-point-math-skip-label" class="x04-point-math-skip-label" x="559" y="52">SKIPPED</text>
+
+          <text class="x04-point-math-axis-static" x="60" y="18" text-anchor="end">1.0</text>
+          <text class="x04-point-math-axis-static" x="60" y="594" text-anchor="end">0</text>
+          <text class="x04-point-math-axis-static" x="736" y="616" text-anchor="end">distance d -&gt;</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var chart = { x0: 70, x1: 740, y0: 10, y1: 590, dMin: 1, dMax: 6 };
+      function dToX(d) {
+        return chart.x0 + ((d - chart.dMin) / (chart.dMax - chart.dMin)) * (chart.x1 - chart.x0);
+      }
+      function vToY(v) {
+        return chart.y1 - v * (chart.y1 - chart.y0);
+      }
+      function mainI(d) {
+        return 1 / (d * d);
+      }
+      function altI(d) {
+        var Kc = 0.1,
+          Kl = 0.3,
+          Kq = 0.6;
+        return 1 / (Kc + Kl * d + Kq * d * d);
+      }
+      function buildPath(fn, dStart, dEnd, steps) {
+        var pts = [];
+        for (var i = 0; i <= steps; i++) {
+          var d = dStart + ((dEnd - dStart) * i) / steps;
+          var x = dToX(d);
+          var y = vToY(fn(d));
+          pts.push(x.toFixed(2) + "," + y.toFixed(2));
+        }
+        return "M" + pts.join(" L");
+      }
+
+      var cutoffD = 4.5;
+      document.getElementById("x04-point-math-curve-head").setAttribute("d", buildPath(mainI, 1, cutoffD, 60));
+      document.getElementById("x04-point-math-curve-tail").setAttribute("d", buildPath(mainI, cutoffD, 6, 30));
+      document.getElementById("x04-point-math-curve-alt").setAttribute("d", buildPath(altI, 1, 6, 80));
+
+      var drawIds = [
+        "x04-point-math-axis-y",
+        "x04-point-math-axis-x",
+        "x04-point-math-curve-head",
+        "x04-point-math-curve-tail",
+        "x04-point-math-curve-alt",
+      ];
+      drawIds.forEach(function (id) {
+        var el = document.getElementById(id);
+        var len = el.getTotalLength();
+        el.style.strokeDasharray = String(len);
+        el.style.strokeDashoffset = String(len);
+      });
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---- establishing beat (Scene 1 open) ---- */
+      tl.fromTo("#x04-point-math-bg", { opacity: 0 }, { opacity: 1, duration: 0.69, ease: "power1.out" }, 0);
+      tl.fromTo(
+        "#x04-point-math-graph-wrap",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power1.out" },
+        0.06,
+      );
+      tl.to("#x04-point-math-axis-y", { strokeDashoffset: 0, duration: 0.29, ease: "power2.out" }, 0.06);
+      tl.to("#x04-point-math-axis-x", { strokeDashoffset: 0, duration: 0.29, ease: "power2.out" }, 0.23);
+      tl.fromTo(
+        "#x04-point-math-kicker-a",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.52, ease: "power2.out" },
+        0.11,
+      );
+
+      /* ---- Scene 1 (0.0-2.87s): formula 1 builds term by term ---- */
+      tl.fromTo(
+        "#x04-point-math-f1-i",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.46, ease: "power3.out" },
+        0.46,
+      );
+      tl.fromTo(
+        "#x04-point-math-f1-eq",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" },
+        0.86,
+      );
+      tl.fromTo(
+        "#x04-point-math-f1-num",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.46, ease: "power3.out" },
+        1.2,
+      );
+      tl.fromTo("#x04-point-math-f1-line", { scaleX: 0 }, { scaleX: 1, duration: 0.34, ease: "power2.out" }, 1.61);
+      tl.fromTo(
+        "#x04-point-math-f1-den",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.46, ease: "power3.out" },
+        1.89,
+      );
+
+      /* ---- Scene 2 (2.87-6.65s): d 1->2 marker + brightness counter 100%->25% ---- */
+      tl.fromTo(
+        "#x04-point-math-dtrack",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.46, ease: "power2.out" },
+        2.87,
+      );
+      tl.fromTo(
+        "#x04-point-math-counter-label",
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.57, ease: "power2.out" },
+        3.1,
+      );
+      tl.fromTo(
+        "#x04-point-math-dtrack-marker",
+        { x: 0 },
+        { x: 320, duration: 1.61, ease: "power3.out" },
+        3.33,
+      );
+
+      var pmCounterEl = document.getElementById("x04-point-math-counter");
+      var pmCState = { value: 100 };
+      tl.fromTo("#x04-point-math-counter", { scale: 0.55 }, { scale: 1, duration: 1.61, ease: "power3.out" }, 3.33);
+      tl.to(
+        pmCState,
+        {
+          value: 25,
+          duration: 1.61,
+          ease: "power3.out",
+          onUpdate: function () {
+            pmCounterEl.textContent = Math.round(pmCState.value).toLocaleString();
+          },
+        },
+        3.33,
+      );
+      tl.fromTo(
+        "#x04-point-math-counter-suffix",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.46, ease: "back.out(1.6)" },
+        4.93,
+      );
+
+      /* keyword-glow (asr-keyword-glow, single-value form): fire-orange flash on landing.
+         Written directly to both the digits and the suffix (not the wrapper) because
+         each has its own explicit CSS `color`, which would otherwise win over anything
+         inherited from a parent. */
+      var pmGlowEls = [
+        document.getElementById("x04-point-math-counter"),
+        document.getElementById("x04-point-math-counter-suffix"),
+      ];
+      var GLOW_ATTACK = 0.12,
+        GLOW_RELEASE = 0.35,
+        GLOW_REST = 0.12,
+        GLOW_MAXBLUR = 34;
+      var GLOW_REST_RGB = { r: 240, g: 236, b: 229 };
+      var GLOW_PEAK_RGB = { r: 232, g: 93, b: 38 };
+      function pmGlowEnvelope(t, start, end) {
+        if (t < start) return 0;
+        if (t < end) return Math.min((t - start) / GLOW_ATTACK, 1);
+        var releaseEnd = end + GLOW_RELEASE;
+        if (t < releaseEnd) return 1 - ((t - end) / GLOW_RELEASE) * (1 - GLOW_REST);
+        return GLOW_REST;
+      }
+      var pmGlowDriver = { t: 0 };
+      tl.to(
+        pmGlowDriver,
+        {
+          t: 1,
+          duration: 1.15,
+          ease: "none",
+          onUpdate: function () {
+            var env = pmGlowEnvelope(pmGlowDriver.t, 0, 0.15);
+            var blur = (GLOW_MAXBLUR * env).toFixed(1);
+            var shadow = "0 0 " + blur + "px rgba(232,93,38," + (env * 0.9).toFixed(2) + ")";
+            var r = Math.round(GLOW_REST_RGB.r + (GLOW_PEAK_RGB.r - GLOW_REST_RGB.r) * env);
+            var g = Math.round(GLOW_REST_RGB.g + (GLOW_PEAK_RGB.g - GLOW_REST_RGB.g) * env);
+            var b = Math.round(GLOW_REST_RGB.b + (GLOW_PEAK_RGB.b - GLOW_REST_RGB.b) * env);
+            var color = "rgb(" + r + "," + g + "," + b + ")";
+            for (var i = 0; i < pmGlowEls.length; i++) {
+              pmGlowEls[i].style.textShadow = shadow;
+              pmGlowEls[i].style.color = color;
+            }
+          },
+        },
+        4.87,
+      );
+
+      /* ---- scene seam: kicker zoom-through (cut-catalog) physics -> engine ---- */
+      tl.to("#x04-point-math-kicker-a", { scale: 1.2, filter: "blur(10px)", duration: 0.23, ease: "power3.in" }, 6.48);
+      tl.to("#x04-point-math-kicker-a", { opacity: 0.15, duration: 0.23, ease: "none" }, 6.48);
+      tl.set("#x04-point-math-kicker-a", { opacity: 0 }, 6.71);
+      tl.set("#x04-point-math-kicker-b", { opacity: 0.15, scale: 0.75, filter: "blur(10px)" }, 6.71);
+      tl.to(
+        "#x04-point-math-kicker-b",
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.57, ease: "expo.out" },
+        6.71,
+      );
+
+      /* ---- Scene 3 (6.65-10.89s): curve self-draws, formula 2 builds, tunable curve overlays ---- */
+      tl.to("#x04-point-math-curve-head", { strokeDashoffset: 0, duration: 1.26, ease: "power2.out" }, 6.77);
+      tl.fromTo(
+        "#x04-point-math-tick-d1",
+        { opacity: 0, scale: 0.4 },
+        { opacity: 1, scale: 1, duration: 0.34, ease: "back.out(1.8)" },
+        6.82,
+      );
+      tl.fromTo(
+        "#x04-point-math-tick-d1-label",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.34, ease: "power1.out" },
+        6.86,
+      );
+      tl.fromTo(
+        "#x04-point-math-tick-d2",
+        { opacity: 0, scale: 0.4 },
+        { opacity: 1, scale: 1, duration: 0.34, ease: "back.out(1.8)" },
+        7.11,
+      );
+      tl.fromTo(
+        "#x04-point-math-tick-d2-label",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.34, ease: "power1.out" },
+        7.17,
+      );
+      tl.to("#x04-point-math-curve-tail", { strokeDashoffset: 0, duration: 0.57, ease: "power2.out" }, 7.72);
+
+      tl.fromTo(
+        "#x04-point-math-f2-att",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.34, ease: "power3.out" },
+        7.8,
+      );
+      tl.fromTo(
+        "#x04-point-math-f2-eq",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.34, ease: "power3.out" },
+        8.08,
+      );
+      tl.fromTo(
+        "#x04-point-math-f2-num",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.34, ease: "power3.out" },
+        8.37,
+      );
+      tl.fromTo("#x04-point-math-f2-line", { scaleX: 0 }, { scaleX: 1, duration: 0.34, ease: "power2.out" }, 8.66);
+      tl.fromTo(
+        "#x04-point-math-f2-kc",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.32, ease: "power3.out" },
+        8.94,
+      );
+      tl.fromTo(
+        "#x04-point-math-f2-plus1",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25, ease: "power1.out" },
+        9.15,
+      );
+      tl.fromTo(
+        "#x04-point-math-f2-kld",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.32, ease: "power3.out" },
+        9.36,
+      );
+      tl.fromTo(
+        "#x04-point-math-f2-plus2",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25, ease: "power1.out" },
+        9.56,
+      );
+      tl.fromTo(
+        "#x04-point-math-f2-kqd2",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.34, ease: "power3.out" },
+        9.77,
+      );
+
+      tl.fromTo("#x04-point-math-curve-alt", { opacity: 0 }, { opacity: 0.55, duration: 0.34 }, 10.15);
+      tl.to("#x04-point-math-curve-alt", { strokeDashoffset: 0, duration: 0.63, ease: "none" }, 10.21);
+
+      /* ---- Scene 4 (10.89-14.14s): falloff radius cutoff + selective blur/dim + hold ---- */
+      tl.fromTo(
+        "#x04-point-math-cutoff-line",
+        { attr: { y2: 10 } },
+        { attr: { y2: 590 }, duration: 0.46, ease: "power2.out" },
+        11.01,
+      );
+      tl.to(
+        "#x04-point-math-curve-tail",
+        { "--dof": "9px", opacity: 0.35, duration: 0.92, ease: "power2.inOut" },
+        11.24,
+      );
+      tl.to("#x04-point-math-curve-alt", { opacity: 0.22, duration: 0.92, ease: "power2.inOut" }, 11.24);
+      tl.to("#x04-point-math-dim-rect", { opacity: 0.42, duration: 0.92, ease: "power2.inOut" }, 11.24);
+      tl.fromTo(
+        "#x04-point-math-skip-label",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.46, ease: "power2.out" },
+        11.47,
+      );
+
+      tl.to("#x04-point-math-world", { scale: 1.035, duration: 2.52, ease: "power1.inOut" }, 11.47);
+
+      window.__timelines["04-point-math"] = tl;
+    })();
+  </script>
+</template>

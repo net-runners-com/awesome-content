@@ -1,0 +1,46 @@
+{
+  "name": "remotion-mv",
+  "version": "1.0.0",
+  "description": "My Remotion video",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@react-three/fiber": "^9.7.0",
+    "@remotion/cli": "4.0.516",
+    "@remotion/google-fonts": "^4.0.516",
+    "@remotion/media-utils": "^4.0.516",
+    "@remotion/tailwind-v4": "4.0.516",
+    "@remotion/three": "^4.0.516",
+    "@remotion/zod-types": "4.0.516",
+    "gsap": "^3.15.0",
+    "lottie-web": "^5.13.0",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^7.4.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.516",
+    "tailwindcss": "4.0.0",
+    "textalive-app-api": "^0.4.0",
+    "three": "^0.185.1",
+    "tone": "^15.1.22",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.516",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "9.19.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src && tsc"
+  },
+  "sideEffects": [
+    "*.css"
+  ]
+}

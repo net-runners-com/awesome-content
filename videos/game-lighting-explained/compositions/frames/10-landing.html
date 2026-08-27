@@ -1,0 +1,202 @@
+<template>
+<style>
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: block; }
+  @font-face { font-family: 'IBM Plex Mono'; src: url('assets/fonts/IBM_Plex_Mono_500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: block; }
+
+  #root {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    container-type: size;
+  }
+
+  #landing-10-bg {
+    position: absolute;
+    inset: 0;
+    background: #111111;
+  }
+
+  #landing-10-content {
+    position: absolute;
+    inset: 0;
+  }
+
+  #landing-10-title-wrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 454px;
+    text-align: center;
+    white-space: nowrap;
+    font-family: "Barlow", "Noto Sans JP", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 3.8cqw;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-transform: lowercase;
+    color: #F0ECE5;
+  }
+
+  .landing-10-hero-wrap {
+    position: relative;
+    display: inline-block;
+    vertical-align: baseline;
+  }
+
+  .landing-10-hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3.6em;
+    height: 3.6em;
+    margin-top: -1.8em;
+    margin-left: -1.8em;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232, 93, 38, 0.5) 0%, rgba(232, 93, 38, 0.24) 38%, rgba(232, 93, 38, 0) 72%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .landing-10-hero-glyph {
+    position: relative;
+    z-index: 2;
+    display: inline-block;
+    color: #F0ECE5;
+  }
+
+  #landing-10-index-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 608px;
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 1cqw;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 0.72cqw;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .landing-10-index-item {
+    display: inline-block;
+    color: #888880;
+  }
+
+  .landing-10-index-sep {
+    display: inline-block;
+    color: #E85D26;
+  }
+</style>
+
+<div id="root" data-composition-id="10-landing" data-width="1920" data-height="1080">
+  <div id="landing-10-bg" class="clip" data-start="0" data-duration="11.71" data-track-index="0"></div>
+
+  <div id="landing-10-content" class="clip" data-start="0" data-duration="11.71" data-track-index="1">
+    <div id="landing-10-title-wrap">
+      <span>まず、</span><span class="landing-10-hero-wrap"><span class="landing-10-hero-glow" id="landing-10-hero-glow"></span><span class="landing-10-hero-glyph" id="landing-10-hero-glyph">光</span></span><span>を3つに分けて見る</span>
+    </div>
+    <div id="landing-10-index-row">
+      <span class="landing-10-index-item" id="landing-10-idx-1">POINT</span>
+      <span class="landing-10-index-sep">/</span>
+      <span class="landing-10-index-item" id="landing-10-idx-2">DIRECTIONAL</span>
+      <span class="landing-10-index-sep">/</span>
+      <span class="landing-10-index-item" id="landing-10-idx-3">AMBIENT</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+  window.__timelines = window.__timelines || {};
+  const tl = gsap.timeline({ paused: true });
+
+  const DURATION = 11.71;
+
+  // Scene 1 (0.0-2.5s) — the single restrained move: title slides up + crossfades in,
+  // centered at y ~ 454. Nothing else moves this beat. VO sentence 1 begins here:
+  // 「次にシーンを開いたら、まず光を3つに分けて見てみよう。」
+  tl.set("#landing-10-title-wrap", { yPercent: -50 }, 0);
+  tl.fromTo(
+    "#landing-10-title-wrap",
+    { y: 30, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.9, ease: "power3.out" },
+    0
+  );
+
+  // Scene 2 (5.5-6.5s) — small mono 3-index reveals as sentence 1 lands
+  // ("...3つに分けて見てみよう"). One quiet stagger, holds after.
+  const INDEX_START = 5.8;
+  const INDEX_STAGGER = 0.15;
+
+  tl.fromTo(
+    "#landing-10-index-row",
+    { opacity: 0 },
+    { opacity: 1, duration: 0.6, ease: "power1.out" },
+    INDEX_START
+  );
+  ["#landing-10-idx-1", "#landing-10-idx-2", "#landing-10-idx-3"].forEach((sel, i) => {
+    tl.fromTo(
+      sel,
+      { y: 10 },
+      { y: 0, duration: 0.55, ease: "power2.out" },
+      INDEX_START + i * INDEX_STAGGER
+    );
+  });
+
+  // Scene 3 (7.5-8.5s) — "光" ignites: ambient-glow-bloom + color shift to fire-orange,
+  // the Frame 1 callback, landing during sentence 2:
+  // 「それだけで、シーンの見方が変わるはずだ。」 Glow and glyph land together as ONE beat.
+  const GLOW_START = 7.5;
+  const GLOW_BLOOM_DUR = 1.0;
+  const GLOW_PEAK = 0.34;
+
+  tl.fromTo(
+    "#landing-10-hero-glow",
+    { opacity: 0, scale: 0.8 },
+    { opacity: GLOW_PEAK, scale: 1, duration: GLOW_BLOOM_DUR, ease: "power2.out" },
+    GLOW_START
+  );
+  tl.to(
+    "#landing-10-hero-glyph",
+    { color: "#E85D26", duration: GLOW_BLOOM_DUR, ease: "power2.out" },
+    GLOW_START
+  );
+
+  // Bounded idle breathe on the glow through the hold — finite phase tween, never a yoyo loop.
+  const glowEl = document.getElementById("landing-10-hero-glow");
+  const BREATHE_START = GLOW_START + GLOW_BLOOM_DUR; // 8.5 — stillness hold begins
+  const BLACKOUT_START = 11.11;
+  const BREATHE_DUR = BLACKOUT_START - BREATHE_START; // 2.61
+  const OPACITY_AMP = 0.04;
+  const SCALE_AMP = 0.02;
+  const phase = { p: 0 };
+  tl.to(
+    phase,
+    {
+      p: Math.PI * 2 * 1.1,
+      duration: BREATHE_DUR,
+      ease: "none",
+      onUpdate: () => {
+        const s = Math.sin(phase.p);
+        glowEl.style.opacity = String(GLOW_PEAK + s * OPACITY_AMP);
+        glowEl.style.transform = `scale(${1 + s * SCALE_AMP})`;
+      },
+    },
+    BREATHE_START
+  );
+
+  // Scene 4 (8.5-11.11s) — complete stillness hold (only the glow breathes).
+  // Final-frame-only exit: the last ~0.6s decays title + glow + index to black over the dark ground.
+  tl.to(
+    "#landing-10-content",
+    { opacity: 0, duration: DURATION - BLACKOUT_START, ease: "power1.in" },
+    BLACKOUT_START
+  );
+
+  window.__timelines["10-landing"] = tl;
+</script>
+</template>

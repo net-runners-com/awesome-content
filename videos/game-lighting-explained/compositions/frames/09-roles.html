@@ -1,0 +1,412 @@
+<template data-composition-id="09-roles" data-duration="12.201">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: block; }
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: block; }
+  @font-face { font-family: 'IBM Plex Mono'; src: url('assets/fonts/IBM_Plex_Mono_500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: block; }
+
+  #root {
+    --ink-black: #111111;
+    --ink-black-alt: #1A1A18;
+    --fire-orange: #E85D26;
+    --cream: #F0ECE5;
+    --cream-muted: #888880;
+    --cream-hint: #505048;
+    --border-dark: #282826;
+
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    container-type: size;
+    font-family: "Barlow", "Noto Sans JP", system-ui, sans-serif;
+    color: var(--cream);
+    background: transparent;
+  }
+
+  #root .r9-layer { position: absolute; inset: 0; }
+
+  /* ---- background ---- */
+  .r9-bg-fill {
+    position: absolute;
+    inset: 0;
+    background-color: var(--ink-black);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(240,236,229,0.045) 0px, rgba(240,236,229,0.045) 1px, transparent 1px, transparent 96px),
+      repeating-linear-gradient(90deg, rgba(240,236,229,0.045) 0px, rgba(240,236,229,0.045) 1px, transparent 1px, transparent 96px);
+  }
+
+  /* ---- eyebrow ---- */
+  .r9-eyebrow-inner { position: absolute; left: 110px; top: 84px; opacity: 0; }
+  .r9-kicker {
+    font-family: "IBM Plex Mono", system-ui, monospace;
+    font-weight: 500;
+    font-size: 0.72cqw;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fire-orange);
+  }
+  .r9-rule { width: 36px; height: 2px; background: var(--fire-orange); margin-top: 10px; }
+
+  /* ---- stage (mini scene) ---- */
+  #r9-stage-glow {
+    position: absolute;
+    left: 30px; top: 115px; width: 1200px; height: 770px;
+    background: radial-gradient(circle, rgba(232,93,38,0.85) 0%, rgba(232,93,38,0.22) 42%, rgba(232,93,38,0) 72%);
+    opacity: 0;
+    z-index: 1;
+  }
+  #r9-stage-panel {
+    position: absolute;
+    left: 110px; top: 195px; width: 1040px; height: 610px;
+    background: var(--ink-black-alt);
+    border: 1px solid var(--border-dark);
+    overflow: hidden;
+    z-index: 2;
+  }
+  #r9-stage-panel svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #r9-horizon { transform-box: fill-box; transform-origin: 0% 50%; }
+  #r9-sweep {
+    position: absolute;
+    left: 0; top: -150px; width: 220px; height: 900px;
+    background: linear-gradient(180deg, transparent, rgba(232,93,38,0.42), transparent);
+    opacity: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  /* ---- right rail: mini role cards ---- */
+  .r9-card {
+    position: absolute;
+    left: 1300px;
+    width: 510px;
+    height: 150px;
+    padding: 22px 4px 0 4px;
+    border-top: 1px solid var(--border-dark);
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    opacity: 0;
+  }
+  .r9-card-icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .r9-card-icon svg { width: 36px; height: 36px; }
+  .r9-card-text { display: flex; flex-direction: column; gap: 6px; }
+  .r9-card-index {
+    font-family: "IBM Plex Mono", system-ui, monospace;
+    font-weight: 500;
+    font-size: 1.0cqw;
+    letter-spacing: 0.1em;
+    color: var(--fire-orange);
+  }
+  .r9-card-term {
+    font-family: "Barlow", "Noto Sans JP", system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.0cqw;
+    line-height: 1.05;
+    color: var(--cream);
+  }
+  .r9-card-role {
+    font-family: "Barlow", "Noto Sans JP", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.0cqw;
+    color: var(--fire-orange);
+  }
+
+  /* ---- formula connectors ---- */
+  .r9-connector-glyph {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "IBM Plex Mono", system-ui, monospace;
+    font-weight: 500;
+    font-size: 2.2cqw;
+    color: var(--fire-orange);
+    opacity: 0;
+  }
+  #r9-conn-plus-1 { left: 1530px; top: 352px; }
+  #r9-conn-plus-2 { left: 1530px; top: 537px; }
+  #r9-conn-equals { left: 1200px; top: 445px; }
+  #r9-conn-line {
+    position: absolute;
+    left: 1150px; top: 469px; width: 150px; height: 2px;
+    background: var(--fire-orange);
+    transform-origin: left center;
+  }
+</style>
+
+<div id="root" data-composition-id="09-roles" data-start="0" data-duration="12.201" data-width="1920" data-height="1080">
+
+  <div class="clip r9-layer" data-start="0" data-duration="12.201" data-track-index="0">
+    <div class="r9-bg-fill"></div>
+  </div>
+
+  <div class="clip r9-layer" data-start="0" data-duration="12.201" data-track-index="1">
+    <div id="r9-stage-glow"></div>
+    <div id="r9-stage-panel">
+      <svg viewBox="0 0 1040 610" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <radialGradient id="r9-point-grad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#E85D26" stop-opacity="0.9"/>
+            <stop offset="45%" stop-color="#E85D26" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#E85D26" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <line id="r9-horizon" x1="60" y1="440" x2="980" y2="440" stroke="#282826" stroke-width="1.5"/>
+
+        <circle id="r9-shape-a" cx="260" cy="375" r="65" fill="#111111" stroke="#282826" stroke-width="1.5" opacity="0"/>
+        <polygon id="r9-shape-b" points="520,300 450,440 590,440" fill="#111111" stroke="#282826" stroke-width="1.5" opacity="0"/>
+        <rect id="r9-shape-c" x="730" y="310" width="150" height="130" fill="#111111" stroke="#282826" stroke-width="1.5" opacity="0"/>
+
+        <rect id="r9-scrim" x="0" y="0" width="1040" height="610" fill="#111111" opacity="0.55"/>
+
+        <circle id="r9-hl-a" cx="260" cy="375" r="65" fill="#E85D26" opacity="0"/>
+        <polygon id="r9-hl-b" points="520,300 450,440 590,440" fill="#E85D26" opacity="0"/>
+        <rect id="r9-hl-c" x="730" y="310" width="150" height="130" fill="#E85D26" opacity="0"/>
+
+        <circle id="r9-point-glow" cx="520" cy="150" r="140" fill="url(#r9-point-grad)" opacity="0"/>
+        <g id="r9-point-node" opacity="0.15">
+          <circle cx="520" cy="150" r="8" fill="#E85D26"/>
+          <line x1="534" y1="150" x2="544" y2="150" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="527" y1="162" x2="532" y2="171" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="513" y1="162" x2="508" y2="171" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="506" y1="150" x2="496" y2="150" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="513" y1="138" x2="508" y2="129" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="527" y1="138" x2="532" y2="129" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div id="r9-sweep"></div>
+    </div>
+  </div>
+
+  <div class="clip r9-layer" data-start="0" data-duration="12.201" data-track-index="2">
+    <div class="r9-eyebrow-inner" id="r9-eyebrow">
+      <div class="r9-kicker">LIGHT ROLES</div>
+      <div class="r9-rule"></div>
+    </div>
+  </div>
+
+  <div class="clip r9-layer" data-start="0" data-duration="12.201" data-track-index="3">
+    <div class="r9-card" id="r9-card-1" style="top:210px;">
+      <div class="r9-card-icon">
+        <svg viewBox="0 0 32 32" fill="none">
+          <line x1="4" y1="28" x2="16" y2="6" stroke="#E85D26" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="12" y1="28" x2="24" y2="6" stroke="#E85D26" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="20" y1="28" x2="30" y2="8" stroke="#E85D26" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="r9-card-text">
+        <div class="r9-card-index">01</div>
+        <div class="r9-card-term">ディレクショナル</div>
+        <div class="r9-card-role">主光源</div>
+      </div>
+    </div>
+
+    <div class="r9-card" id="r9-card-2" style="top:395px;">
+      <div class="r9-card-icon">
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="4" fill="#E85D26"/>
+          <line x1="23" y1="16" x2="29" y2="16" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="20.5" y1="21.5" x2="24.5" y2="25.5" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="11.5" y1="21.5" x2="7.5" y2="25.5" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="9" y1="16" x2="3" y2="16" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="11.5" y1="10.5" x2="7.5" y2="6.5" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+          <line x1="20.5" y1="10.5" x2="24.5" y2="6.5" stroke="#E85D26" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="r9-card-text">
+        <div class="r9-card-index">02</div>
+        <div class="r9-card-term">点光源</div>
+        <div class="r9-card-role">アクセント</div>
+      </div>
+    </div>
+
+    <div class="r9-card" id="r9-card-3" style="top:580px;">
+      <div class="r9-card-icon">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M6,24 A10,10 0 0 1 26,24" stroke="#E85D26" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <line x1="4" y1="26" x2="28" y2="26" stroke="#888880" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="r9-card-text">
+        <div class="r9-card-index">03</div>
+        <div class="r9-card-term">環境光</div>
+        <div class="r9-card-role">ベース</div>
+      </div>
+    </div>
+
+    <div id="r9-conn-line"></div>
+    <div class="r9-connector-glyph" id="r9-conn-plus-1">+</div>
+    <div class="r9-connector-glyph" id="r9-conn-plus-2">+</div>
+    <div class="r9-connector-glyph" id="r9-conn-equals">=</div>
+  </div>
+
+</div>
+
+<script>
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused: true });
+
+  // ---- Scene 1 (0.0-1.71s): near-dark mini scene establishes ----
+  tl.fromTo("#r9-stage-panel", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.68, ease: "power2.out" }, 0);
+
+  tl.fromTo("#r9-eyebrow", { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.46, ease: "power2.out" }, 0.11);
+
+  tl.fromTo("#r9-horizon", { scaleX: 0 }, { scaleX: 1, duration: 0.57, ease: "power2.out" }, 0.23);
+
+  tl.fromTo(
+    ["#r9-shape-a", "#r9-shape-b", "#r9-shape-c"],
+    { opacity: 0 },
+    { opacity: 1, duration: 0.46, ease: "power2.out", stagger: 0.11 },
+    0.4
+  );
+
+  // ---- Scene 2 (1.71-7.41s): three lights layer on, cards cascade into rail ----
+
+  // beat 1 — directional: diagonal wash sweeps once across the stage
+  tl.fromTo(
+    "#r9-sweep",
+    { x: -300, rotation: -18, opacity: 0 },
+    { x: 1300, rotation: -18, opacity: 0.32, duration: 1.03, ease: "none" },
+    1.71
+  );
+  tl.to("#r9-sweep", { opacity: 0, duration: 0.29, ease: "power1.in" }, 2.17);
+
+  tl.fromTo("#r9-hl-a", { opacity: 0 }, { opacity: 0.35, duration: 0.34, ease: "power2.out" }, 2.0);
+  tl.fromTo("#r9-hl-b", { opacity: 0 }, { opacity: 0.3, duration: 0.34, ease: "power2.out" }, 2.22);
+  tl.fromTo("#r9-hl-c", { opacity: 0 }, { opacity: 0.35, duration: 0.34, ease: "power2.out" }, 2.45);
+
+  tl.fromTo(
+    "#r9-card-1",
+    { opacity: 0, scale: 0.85 },
+    { opacity: 1, scale: 1, duration: 0.51, ease: "back.out(1.25)" },
+    1.77
+  );
+
+  // beat 2 — point: local accent glow blooms (ambient-glow-bloom hero form)
+  tl.fromTo("#r9-point-node", { opacity: 0.15 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 3.61);
+  tl.fromTo(
+    "#r9-point-glow",
+    { opacity: 0, scale: 0.85 },
+    { opacity: 0.34, scale: 1, duration: 0.8, ease: "power2.out" },
+    3.61
+  );
+  tl.to("#r9-hl-b", { opacity: 0.55, duration: 0.4, ease: "power2.out" }, 4.45);
+
+  tl.fromTo(
+    "#r9-card-2",
+    { opacity: 0, scale: 0.85 },
+    { opacity: 1, scale: 1, duration: 0.51, ease: "back.out(1.25)" },
+    3.65
+  );
+
+  // beat 3 — ambient: shadow scrim lifts, black-crush disappears
+  tl.fromTo("#r9-scrim", { opacity: 0.55 }, { opacity: 0.06, duration: 0.8, ease: "power2.out" }, 5.51);
+
+  tl.fromTo(
+    "#r9-card-3",
+    { opacity: 0, scale: 0.85 },
+    { opacity: 1, scale: 1, duration: 0.51, ease: "back.out(1.25)" },
+    5.53
+  );
+
+  // ---- Scene 3 (7.41-9.92s): formula resolves, completed scene gets keyword glow ----
+  tl.fromTo(
+    "#r9-conn-plus-1",
+    { opacity: 0, scale: 0.6 },
+    { opacity: 1, scale: 1, duration: 0.34, ease: "back.out(1.4)" },
+    7.41
+  );
+  tl.fromTo(
+    "#r9-conn-plus-2",
+    { opacity: 0, scale: 0.6 },
+    { opacity: 1, scale: 1, duration: 0.34, ease: "back.out(1.4)" },
+    7.58
+  );
+  tl.fromTo("#r9-conn-line", { scaleX: 0 }, { scaleX: 1, duration: 0.34, ease: "power2.out" }, 7.75);
+  tl.fromTo(
+    "#r9-conn-equals",
+    { opacity: 0, scale: 0.6 },
+    { opacity: 1, scale: 1, duration: 0.34, ease: "back.out(1.4)" },
+    7.92
+  );
+
+  tl.fromTo(
+    "#r9-stage-panel",
+    { borderColor: "#282826" },
+    { borderColor: "#E85D26", duration: 0.46, ease: "power2.out" },
+    7.87
+  );
+
+  var BLOOM_START = 7.87;
+  var BLOOM_DUR = 0.91;
+  var GLOW_PEAK_OPACITY = 0.32;
+  tl.fromTo(
+    "#r9-stage-glow",
+    { opacity: 0, scale: 0.85 },
+    { opacity: GLOW_PEAK_OPACITY, scale: 1, duration: BLOOM_DUR, ease: "power2.out" },
+    BLOOM_START
+  );
+
+  // bounded idle breathe — finite phase tween, NOT a yoyo loop
+  // extended to the padded root end (12.201s); no exit tween, breathe just keeps going through the overlap
+  (function () {
+    var glow = document.getElementById("r9-stage-glow");
+    var phase = { p: 0 };
+    var settleAt = BLOOM_START + BLOOM_DUR; // 8.78
+    var breatheDur = 12.201 - settleAt; // 3.421
+    var OPACITY_AMP = 0.04;
+    var SCALE_AMP = 0.02;
+    tl.to(
+      phase,
+      {
+        p: Math.PI * 2,
+        duration: breatheDur,
+        ease: "none",
+        onUpdate: function () {
+          var s = Math.sin(phase.p);
+          glow.style.opacity = String(GLOW_PEAK_OPACITY + s * OPACITY_AMP);
+          glow.style.transform = "scale(" + (1 + s * SCALE_AMP) + ")";
+        },
+      },
+      settleAt
+    );
+  })();
+
+  // ---- Scene 4 (9.92-12.201s): hold — residual glow + subtle jitter only ----
+  // extended to the padded root end (12.201s); no exit tween
+  (function () {
+    var panel = document.getElementById("r9-stage-panel");
+    var phase = { p: 0 };
+    var jitterStart = 9.92;
+    var jitterDur = 12.201 - jitterStart; // 2.281
+    tl.to(
+      phase,
+      {
+        p: Math.PI * 2 * 1.5,
+        duration: jitterDur,
+        ease: "none",
+        onUpdate: function () {
+          var y = Math.sin(phase.p) * 2;
+          gsap.set(panel, { y: y });
+        },
+      },
+      jitterStart
+    );
+  })();
+
+  window.__timelines["09-roles"] = tl;
+</script>
+</template>

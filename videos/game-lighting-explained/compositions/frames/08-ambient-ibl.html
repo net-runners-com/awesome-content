@@ -1,0 +1,418 @@
+<template>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+<style>
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: block; }
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: block; }
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: block; }
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: block; }
+  @font-face { font-family: 'Barlow'; src: url('assets/fonts/Barlow_900.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: block; }
+  @font-face { font-family: 'IBM Plex Mono'; src: url('assets/fonts/IBM_Plex_Mono_500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: block; }
+
+  #root {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    container-type: size;
+    /* backstop only — the real full-bleed ground is the .aibl-grid-bg clip layer below */
+    background: #111111;
+    font-family: "Barlow", system-ui, sans-serif;
+    color: #F0ECE5;
+  }
+
+  .aibl-mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.85cqw;
+  }
+
+  /* ---- full-bleed ground (solid ink-black + faint grid, clip layer, never on #root) ---- */
+  .aibl-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-color: #111111;
+    background-image:
+      linear-gradient(rgba(240, 236, 229, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240, 236, 229, 0.06) 1px, transparent 1px);
+    background-size: 4cqw 4cqw;
+    opacity: 1;
+  }
+
+  /* ---- top chrome ---- */
+  .aibl-chrome-top {
+    position: absolute;
+    left: 5.5cqw;
+    right: 5.5cqw;
+    top: 6cqw;
+    height: 2.2cqw;
+  }
+  .aibl-chrome-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: #282826;
+    transform-origin: left center;
+  }
+  .aibl-kicker-row {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6cqw;
+    opacity: 0;
+  }
+  .aibl-rule {
+    display: inline-block;
+    width: 36px;
+    height: 2px;
+    background: #E85D26;
+  }
+  .aibl-kicker {
+    color: #E85D26;
+  }
+  .aibl-catnum {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #F0ECE5;
+    opacity: 0;
+  }
+
+  /* ---- process track (foreground subject) ---- */
+  .aibl-swap-wrap {
+    position: absolute;
+    left: 5.5cqw;
+    top: 16cqw;
+    width: 27cqw;
+    height: 13cqw;
+  }
+  .aibl-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: 50% 50%;
+    opacity: 0;
+  }
+  .aibl-strip-card { z-index: 1; }
+  .aibl-sphere-sharp-card { z-index: 2; }
+
+  .aibl-strip {
+    width: 100%;
+    height: 6.2cqw;
+    background: linear-gradient(90deg,
+      #16233b 0%, #2c4a72 14%, #5f83ad 28%, #cfd9e6 42%, #f0ece5 50%,
+      #e8935d 58%, #E85D26 68%, #7a3418 82%, #16233b 100%);
+    border: 1px solid #282826;
+  }
+
+  .aibl-sphere-sharp {
+    width: 10cqw;
+    height: 10cqw;
+    border-radius: 50%;
+    position: relative;
+    background: conic-gradient(from 210deg,
+      #16233b, #2c4a72, #5f83ad, #f0ece5, #e8935d, #E85D26, #7a3418, #16233b);
+    box-shadow: inset 0 0 0 1px rgba(240, 236, 229, 0.15);
+  }
+  .aibl-sphere-sharp::after {
+    content: "";
+    position: absolute;
+    width: 22%;
+    height: 22%;
+    border-radius: 50%;
+    top: 15%;
+    left: 20%;
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .aibl-sphere-blur {
+    position: absolute;
+    left: 39cqw;
+    top: 18cqw;
+    width: 9cqw;
+    height: 9cqw;
+    border-radius: 50%;
+    background: conic-gradient(from 210deg,
+      #16233b, #2c4a72, #5f83ad, #f0ece5, #e8935d, #E85D26, #7a3418, #16233b);
+    filter: blur(9px);
+    opacity: 0;
+    transform-origin: 50% 50%;
+  }
+
+  .aibl-arrow {
+    position: absolute;
+    left: 33cqw;
+    top: 20.5cqw;
+    width: 5.5cqw;
+    height: 4cqw;
+  }
+  .aibl-arrow svg { width: 100%; height: 100%; display: block; }
+  .aibl-arrow path {
+    fill: none;
+    stroke: #E85D26;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .aibl-proc-label {
+    position: absolute;
+    left: 5.5cqw;
+    top: 30cqw;
+    width: 46cqw;
+  }
+  .aibl-proc-label-mono {
+    opacity: 0;
+  }
+  .aibl-proc-jp {
+    margin-top: 0.7cqw;
+    font-size: 1.9cqw;
+    font-weight: 700;
+    line-height: 1.15;
+    opacity: 0;
+  }
+  .aibl-jp-accent { color: #E85D26; }
+  .aibl-jp-sep {
+    display: inline-block;
+    width: 1.4cqw;
+    height: 2px;
+    background: #E85D26;
+    margin: 0 0.6cqw;
+    vertical-align: middle;
+  }
+
+  /* ---- AO demo (second subject) ---- */
+  .aibl-ao {
+    position: absolute;
+    left: 62cqw;
+    top: 16cqw;
+    width: 32.5cqw;
+  }
+  .aibl-ao-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #E85D26;
+    opacity: 0;
+  }
+  .aibl-ao-tags {
+    position: absolute;
+    left: 0;
+    top: 1.6cqw;
+    display: flex;
+    gap: 0.7cqw;
+    opacity: 0;
+  }
+  .aibl-tag {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.72cqw;
+    padding: 0.35cqw 0.75cqw;
+    border: 1px solid #282826;
+    color: #888880;
+    background: transparent;
+  }
+  .aibl-tag.is-active {
+    color: #111111;
+    background: #E85D26;
+    border-color: #E85D26;
+  }
+
+  .aibl-ao-bars {
+    position: absolute;
+    left: 0;
+    top: 5cqw;
+    display: flex;
+    align-items: flex-end;
+    gap: 1.2cqw;
+    height: 16cqw;
+  }
+  .aibl-bar {
+    width: 5cqw;
+    background: #505048;
+    transform-origin: bottom center;
+  }
+  .aibl-bar:nth-child(1) { height: 9cqw; }
+  .aibl-bar:nth-child(2) { height: 13cqw; }
+  .aibl-bar:nth-child(3) { height: 7cqw; }
+  .aibl-bar:nth-child(4) { height: 15cqw; }
+  .aibl-bar:nth-child(5) { height: 10cqw; }
+
+  .aibl-patch {
+    position: absolute;
+    bottom: 0;
+    width: 1.2cqw;
+    height: 4cqw;
+    background: rgba(0, 0, 0, 0.62);
+    transform: scaleY(0);
+    transform-origin: bottom center;
+  }
+
+  .aibl-ao-jp {
+    position: absolute;
+    left: 0;
+    top: 22cqw;
+    font-size: 1.9cqw;
+    font-weight: 700;
+    line-height: 1.15;
+    opacity: 0;
+  }
+</style>
+
+<div
+  id="root"
+  data-composition-id="08-ambient-ibl"
+  data-start="0"
+  data-duration="13.115"
+  data-width="1920"
+  data-height="1080"
+>
+  <div class="aibl-grid-bg clip" id="aibl-grid-bg" data-start="0" data-duration="13.115" data-track-index="0"></div>
+
+  <div class="aibl-chrome-top">
+    <div class="aibl-chrome-line" id="aibl-chrome-line"></div>
+    <div class="aibl-kicker-row" id="aibl-kicker-row">
+      <span class="aibl-rule"></span>
+      <span class="aibl-mono aibl-kicker">Ambient Light</span>
+    </div>
+    <span class="aibl-mono aibl-catnum" id="aibl-catnum">08</span>
+  </div>
+
+  <!-- process track: HDRI strip -> sharp env sphere -> blurred irradiance sphere -->
+  <div class="aibl-swap-wrap" id="aibl-swap-wrap">
+    <div class="aibl-card aibl-strip-card" id="aibl-strip-card">
+      <div class="aibl-strip"></div>
+    </div>
+    <div class="aibl-card aibl-sphere-sharp-card" id="aibl-sphere-sharp-card">
+      <div class="aibl-sphere-sharp"></div>
+    </div>
+  </div>
+
+  <div class="aibl-sphere-blur" id="aibl-sphere-blur"></div>
+
+  <div class="aibl-arrow" id="aibl-arrow">
+    <svg viewBox="0 0 100 40">
+      <path id="aibl-arrow-path" d="M6,20 L80,20 M80,20 L64,8 M80,20 L64,32"></path>
+    </svg>
+  </div>
+
+  <div class="aibl-proc-label" id="aibl-proc-label-1">
+    <div class="aibl-mono aibl-proc-label-mono" id="aibl-label-hdri">HDRI / Skybox</div>
+    <div class="aibl-proc-jp" id="aibl-jp-1">
+      <span>空</span><span class="aibl-jp-sep"></span><span class="aibl-jp-accent">光源</span>
+    </div>
+  </div>
+
+  <div class="aibl-proc-label" id="aibl-proc-label-2">
+    <div class="aibl-mono aibl-proc-label-mono" id="aibl-label-irr">Env Map / Irradiance</div>
+  </div>
+
+  <!-- AO demo: block cluster with recess shadows -->
+  <div class="aibl-ao" id="aibl-ao">
+    <div class="aibl-mono aibl-ao-label" id="aibl-ao-label">AO</div>
+    <div class="aibl-ao-tags" id="aibl-ao-tags">
+      <span class="aibl-tag is-active" id="aibl-tag-off">AO Off</span>
+      <span class="aibl-tag" id="aibl-tag-on">AO On</span>
+    </div>
+    <div class="aibl-ao-bars" id="aibl-ao-bars">
+      <div class="aibl-bar"></div>
+      <div class="aibl-bar"></div>
+      <div class="aibl-bar"></div>
+      <div class="aibl-bar"></div>
+      <div class="aibl-bar"></div>
+      <div class="aibl-patch" id="aibl-patch-0" style="left:5.0cqw;"></div>
+      <div class="aibl-patch" id="aibl-patch-1" style="left:11.2cqw;"></div>
+      <div class="aibl-patch" id="aibl-patch-2" style="left:17.4cqw;"></div>
+      <div class="aibl-patch" id="aibl-patch-3" style="left:23.6cqw;"></div>
+    </div>
+    <div class="aibl-ao-jp" id="aibl-jp-2">
+      <span>陰影</span><span class="aibl-jp-sep"></span><span class="aibl-jp-accent">立体感</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // measure the arrow path length once, synchronously, before building the timeline
+    var arrowPath = document.getElementById("aibl-arrow-path");
+    var arrowLen = arrowPath.getTotalLength();
+    arrowPath.style.strokeDasharray = arrowLen;
+    arrowPath.style.strokeDashoffset = arrowLen;
+
+    window.__timelines = window.__timelines || {};
+    var tl = gsap.timeline({ paused: true });
+
+    // ---- ambient chrome ----
+    // .aibl-grid-bg is the solid ink-black full-bleed ground — always opaque, no reveal tween.
+    tl.fromTo("#aibl-chrome-line", { scaleX: 0 }, { scaleX: 1, duration: 0.68, ease: "power2.out" }, 0.06);
+    tl.fromTo("#aibl-kicker-row", { x: -16, opacity: 0 }, { x: 0, opacity: 1, duration: 0.56, ease: "power3.out" }, 0.06);
+    tl.fromTo("#aibl-catnum", { opacity: 0 }, { opacity: 0.4, duration: 0.56, ease: "power2.out" }, 0.17);
+
+    // ---- Scene 1 (0.0-3.38s): HDRI strip slides in ----
+    tl.fromTo(
+      "#aibl-strip-card",
+      { x: -40, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.68, ease: "power3.out" },
+      0.0,
+    );
+    tl.fromTo("#aibl-label-hdri", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 1.24);
+    tl.fromTo("#aibl-jp-1", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 1.52);
+    tl.to("#aibl-label-hdri", { opacity: 0, duration: 0.34, ease: "power2.in" }, 3.27);
+    tl.to("#aibl-jp-1", { opacity: 0, duration: 0.34, ease: "power2.in" }, 3.27);
+
+    // ---- Scene 2 (3.38-7.21s): scale-swap-transition -> sharp env sphere, then blurred irradiance sphere ----
+    var TRIGGER = 3.38, EXIT_DUR = 0.45, ENTER_DUR = 0.62, OVERLAP = 0.17;
+    tl.to("#aibl-strip-card", { scale: 0.7, opacity: 0, duration: EXIT_DUR, ease: "power2.in" }, TRIGGER);
+    tl.fromTo(
+      "#aibl-sphere-sharp-card",
+      { scale: 0.7, opacity: 0 },
+      { scale: 1.0, opacity: 1, duration: ENTER_DUR, ease: "back.out(1.6)" },
+      TRIGGER + EXIT_DUR - OVERLAP,
+    );
+    tl.fromTo(
+      "#aibl-sphere-blur",
+      { scale: 0.8, opacity: 0 },
+      { scale: 1.0, opacity: 1, duration: 0.56, ease: "back.out(1.4)" },
+      4.51,
+    );
+    tl.to(arrowPath, { strokeDashoffset: 0, duration: 0.56, ease: "power2.out" }, 5.07);
+    tl.fromTo("#aibl-label-irr", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 5.63);
+
+    // ---- Scene 3 (7.21-11.04s): AO demo enters, recesses sink, hard-cut OFF -> ON ----
+    tl.fromTo("#aibl-ao-label", { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.39, ease: "power3.out" }, 7.21);
+    tl.fromTo("#aibl-ao-tags", { opacity: 0 }, { opacity: 1, duration: 0.39, ease: "power3.out" }, 7.38);
+    tl.fromTo(
+      ".aibl-bar",
+      { scaleY: 0 },
+      { scaleY: 1, duration: 0.79, ease: "power3.out", stagger: 0.09 },
+      7.55,
+    );
+    tl.fromTo("#aibl-jp-2", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 8.9);
+
+    // recesses darken from the inside out (stat-bars-and-fills' fill mechanic, used as shadow)
+    tl.to("#aibl-patch-1", { scaleY: 1, duration: 0.56, ease: "power3.out" }, 9.35);
+    tl.to("#aibl-patch-2", { scaleY: 1, duration: 0.56, ease: "power3.out" }, 9.49);
+    tl.to("#aibl-patch-0", { scaleY: 1, duration: 0.56, ease: "power3.out" }, 9.62);
+    tl.to("#aibl-patch-3", { scaleY: 1, duration: 0.56, ease: "power3.out" }, 9.76);
+
+    // hard-cut: AO OFF -> AO ON (instant className swap, seek-safe, no tween)
+    tl.set("#aibl-tag-off", { className: "aibl-tag" }, 10.42);
+    tl.set("#aibl-tag-on", { className: "aibl-tag is-active" }, 10.42);
+
+    // ---- Scene 4 (11.04-13.115s): hold ----
+
+    window.__timelines["08-ambient-ibl"] = tl;
+  })();
+</script>
+</template>

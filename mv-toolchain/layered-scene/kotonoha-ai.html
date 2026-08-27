@@ -1,0 +1,240 @@
+<meta charset="utf-8">
+<title>Kotonoha Pond II</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root { --ink: #0B140D; --paper: #F2F5EA; --dim: #A9B8A6; --line: rgba(242,245,234,.16); --accent: #9BD65C; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif; overflow: hidden; }
+  /* in-flow の高さを持たせる（Artifactビューアはコンテンツ高でiframeを測るため、fixedだけだと0扱いで白くなる） */
+  .stage { position: relative; width: 100%; height: 100vh; min-height: 480px; overflow: hidden; background: #10250f; }
+  .layer { position: absolute; inset: -4% -5%; transition: transform .9s cubic-bezier(.2,.8,.2,1); }
+  .layer .tag { position: absolute; left: 101%; top: 6%; font: 500 11px "DM Mono", monospace; letter-spacing: .12em; color: var(--paper); background: rgba(11,20,13,.85); border: 1px solid var(--line); padding: 6px 10px; border-radius: 8px; opacity: 0; transition: opacity .4s; pointer-events: none; white-space: nowrap; transform: scale(2.6); transform-origin: left top; }
+  .stage.exploded { background: #060d08; }
+  .stage.exploded .layer { inset: 0; transform-origin: 0 0; transform: translate(calc(6% + var(--z) * 3.4%), calc(60% - var(--z) * 4.6%)) skewY(-10deg) scale(.34) !important; box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); outline: 2px solid rgba(242,245,234,.35); background-color: rgba(11,20,13,.5); }
+  .stage.exploded .layer .tag { opacity: 1; }
+
+  #water     { z-index: 1;  --z: 1; }
+  #depth     { z-index: 2;  --z: 2; }
+  #reflect   { z-index: 3;  --z: 3; }
+  #dapples   { z-index: 4;  --z: 4; }
+  #rings     { z-index: 5;  --z: 5; }
+  #float     { z-index: 6;  --z: 6; }
+  #canopy-b  { z-index: 7;  --z: 7; }
+  #canopy    { z-index: 8;  --z: 8; }
+  #fall      { z-index: 9;  --z: 9; }
+  #rain      { z-index: 10; --z: 10; }
+  #light     { z-index: 11; --z: 11; }
+  #grade     { z-index: 12; --z: 12; }
+
+  /* ---- 水面（AI生成の池を全面に） ---- */
+  #water .img { position: absolute; inset: 0; background: url("img-gen/water1.png") center / cover no-repeat; animation: waterDrift 40s ease-in-out infinite alternate; }
+  @keyframes waterDrift { from { transform: scale(1.04) translate(0, 0); } to { transform: scale(1.09) translate(-1.2%, 1%); } }
+  #depth .d1 { position: absolute; inset: 0; background: radial-gradient(120% 100% at 70% 8%, transparent 42%, rgba(6,16,9,.42) 100%); }
+  #depth .d2 { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(150,210,120,.10), transparent 30%, rgba(5,12,7,.4) 100%); }
+  /* ---- 枝葉の映り込み（ぼかし影） ---- */
+  #reflect div { position: absolute; border-radius: 50%; filter: blur(30px); background: rgba(10,28,12,.42); animation: refShift 14s ease-in-out infinite alternate; }
+  @keyframes refShift { to { transform: translateX(1.2vw) scaleY(1.06); } }
+  /* ---- 光の斑 ---- */
+  .dapple { position: absolute; border-radius: 50%; mix-blend-mode: screen; filter: blur(6px); background: radial-gradient(circle, rgba(214,255,196,.7), rgba(150,230,170,.22) 55%, transparent 75%); animation: shimmer var(--du, 6s) ease-in-out var(--de, 0s) infinite; opacity: 0; }
+  @keyframes shimmer { 0%,100% { opacity: 0; transform: scale(.7) translateX(0); } 40% { opacity: var(--o, .5); transform: scale(1) translateX(.6vw); } 70% { opacity: calc(var(--o, .5) * .6); } }
+  /* ---- 波紋 ---- */
+  .ring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(224,255,216,.5); transform: translate(-50%, -50%) scale(0); animation: ringGrow 2.8s cubic-bezier(.2,.7,.4,1) forwards; mix-blend-mode: screen; }
+  @keyframes ringGrow { 0% { transform: translate(-50%,-50%) scale(.06); opacity: 0; } 12% { opacity: .85; } 100% { transform: translate(-50%,-50%) scale(1); opacity: 0; } }
+  /* ---- 浮き葉 ---- */
+  #float .fleaf { position: absolute; animation: drift var(--du) ease-in-out var(--de) infinite alternate; filter: drop-shadow(0 2px 3px rgba(5,15,8,.5)); }
+  @keyframes drift { from { transform: translate(0,0) rotate(var(--r0)) scaleY(var(--sy,1)); } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r1)) scaleY(var(--sy,1)); } }
+  /* ---- 枝葉（AI生成カットアウト） ---- */
+  .canopy-img { position: absolute; background: url("img-gen/branch1-cut.png") left top / contain no-repeat; }
+  #canopy-b .canopy-img { left: -2%; top: -14%; width: 62%; height: 54%; transform: scaleX(-1); background-image: url("img-gen/branch1-cut-blur.png"); opacity: .75; }
+  #canopy .c1 { left: -9%; top: -7%; width: 84%; height: 72%; }
+  #canopy .c2 { left: 58%; top: -10%; width: 56%; height: 46%; transform: scaleX(-1) rotate(4deg); opacity: .92; }
+  .sway { position: absolute; inset: 0; }
+  .swayA { animation: swayA 9s ease-in-out infinite alternate; transform-origin: 8% -12%; }
+  .swayB { animation: swayB 12s ease-in-out -4s infinite alternate; transform-origin: 92% -14%; }
+  .swayC { animation: swayA 15s ease-in-out -7s infinite alternate; transform-origin: 10% -10%; }
+  @keyframes swayA { to { transform: rotate(.8deg) translateX(-.4vw); } }
+  @keyframes swayB { to { transform: rotate(-.7deg) translateX(.3vw); } }
+  /* ---- 落ち葉 ---- */
+  #fall .leaf { position: absolute; width: 26px; height: 26px; opacity: 0; }
+  /* ---- 雨 ---- */
+  #rain { display: none; }
+  .stage.rainy #rain { display: block; }
+  .stage.rainy #light { opacity: .5; }
+  .streak { position: absolute; top: -12%; width: 1.5px; height: 9vh; background: linear-gradient(180deg, transparent, rgba(222,246,228,.5)); animation: fallRain var(--du) linear var(--de) infinite; }
+  @keyframes fallRain { to { transform: translateY(130vh); } }
+  /* ---- 光 ---- */
+  #light .glow { position: absolute; left: 34%; top: -20%; width: 80vw; height: 55vw; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(218,255,196,.38), rgba(160,220,140,.14) 45%, transparent 72%); mix-blend-mode: screen; animation: breathe 11s ease-in-out infinite alternate; }
+  @keyframes breathe { to { opacity: .72; } }
+  /* ---- グレード ---- */
+  #grade .vig { position: absolute; inset: 0; background: radial-gradient(115% 95% at 50% 42%, transparent 52%, rgba(5,12,7,.58)); mix-blend-mode: multiply; }
+  #grade .grain { position: absolute; inset: 0; opacity: .06; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMDAnIGhlaWdodD0nMzAwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nLjknIG51bU9jdGF2ZXM9JzInIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCglMjNuKScvPjwvc3ZnPg=="); }
+  #grade .split { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(198,255,160,.1), transparent 45%, rgba(10,40,60,.14)); mix-blend-mode: soft-light; }
+
+  /* ---- HUD ---- */
+  .top { position: fixed; left: 24px; top: 20px; z-index: 100; pointer-events: none; }
+  .eyebrow { font: 500 11px "DM Mono", monospace; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  h1 { margin: 4px 0 0; font: 700 26px/1.1 "Zen Kaku Gothic New", sans-serif; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+  .hud { position: fixed; left: 24px; bottom: 22px; z-index: 100; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { appearance: none; cursor: pointer; border: 1px solid var(--line); color: var(--paper); background: rgba(11,20,13,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font: 700 12px/1 "Zen Kaku Gothic New", sans-serif; padding: 11px 15px; border-radius: 999px; transition: .15s; }
+  .btn.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .legend { position: fixed; right: 24px; bottom: 22px; z-index: 100; font: 400 10.5px/1.7 "DM Mono", monospace; color: var(--paper); text-align: right; text-shadow: 0 1px 8px rgba(0,0,0,.7); max-width: 46ch; }
+  .legend b { color: var(--accent); font-weight: 500; }
+</style>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <path id="momiji" d="M0,-13 L2.5,-4.5 L8.5,-10 L5,-2.5 L13,-4 L6.5,1 L11,7.5 L3.5,4.5 L2.5,13 L0,5.5 L-2.5,13 L-3.5,4.5 L-11,7.5 L-6.5,1 L-13,-4 L-5,-2.5 L-8.5,-10 L-2.5,-4.5 Z"/>
+  </defs>
+</svg>
+
+<div class="stage" id="stage">
+  <div class="layer" id="water"><div class="img"></div><span class="tag">z 1 · 水面（AI生成・ドリフト）</span></div>
+  <div class="layer" id="depth"><div class="d1"></div><div class="d2"></div><span class="tag">z 2 · 深度シェーディング</span></div>
+  <div class="layer" id="reflect"><span class="tag">z 3 · 枝葉の映り込み（ぼかし影）</span></div>
+  <div class="layer" id="dapples"><span class="tag">z 4 · 光の斑（明滅・漂い）</span></div>
+  <div class="layer" id="rings"><span class="tag">z 5 · 波紋（クリックでも発生）</span></div>
+  <div class="layer" id="float"><span class="tag">z 6 · 水面の浮き葉（ドリフト）</span></div>
+  <div class="layer" id="canopy-b"><div class="sway swayC"><div class="canopy-img"></div></div><span class="tag">z 7 · 奥の枝葉（AI・反転ボケ）</span></div>
+  <div class="layer" id="canopy"><div class="sway swayA"><div class="canopy-img c1"></div></div><div class="sway swayB"><div class="canopy-img c2"></div></div><span class="tag">z 8 · 主の枝葉（AIカットアウト）</span></div>
+  <div class="layer" id="fall"><span class="tag">z 9 · 落ち葉 → 着水波紋</span></div>
+  <div class="layer" id="rain"><span class="tag">z 10 · 雨（トグル）</span></div>
+  <div class="layer" id="light"><div class="glow"></div><span class="tag">z 11 · 木漏れ日のグロー</span></div>
+  <div class="layer" id="grade"><div class="split"></div><div class="vig"></div><div class="grain"></div><span class="tag">z 12 · ビネット / グレイン</span></div>
+</div>
+
+<div class="top"><div class="eyebrow">Kotonoha-style · AI parts × CSS compositing · 12 layers</div><h1>Kotonoha Pond II</h1></div>
+<div class="hud">
+  <button class="btn" id="rainBtn">雨を降らせる</button>
+  <button class="btn" id="explode">レイヤー分解</button>
+  <button class="btn on" id="parallax">視差 ON</button>
+</div>
+<div class="legend">水面と枝葉は<b>ChatGPT画像生成</b>（opengpt経由）を<b>エッジ密度マスク</b>で切り抜き<br>波紋・浮き葉・木漏れ日・雨はコード側で合成 · 水面クリックで波紋</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const layers = [...document.querySelectorAll('.layer')];
+  let seed = 20260825; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const NS = 'http://www.w3.org/2000/svg';
+  // ---- 映り込み影（張り出しの下に） ----
+  const refl = document.getElementById('reflect');
+  [[26, 40, 34, 13], [14, 30, 24, 10], [80, 26, 22, 9]].forEach(([x, y, w, h]) => {
+    const d = document.createElement('div');
+    d.style.cssText = `left:${x - w / 2}%;top:${y}%;width:${w}%;height:${h}%`;
+    refl.appendChild(d);
+  });
+  // ---- 光の斑 ----
+  const dap = document.getElementById('dapples');
+  for (let i = 0; i < 24; i++) {
+    const d = document.createElement('div'); d.className = 'dapple';
+    const w = 2 + rnd() * 7;
+    d.style.cssText = `left:${5 + rnd() * 85}%;top:${36 + rnd() * 56}%;width:${w}vw;height:${(w * (0.3 + rnd() * 0.25)).toFixed(1)}vw;--du:${(4 + rnd() * 7).toFixed(1)}s;--de:${(-rnd() * 10).toFixed(1)}s;--o:${(0.22 + rnd() * 0.4).toFixed(2)}`;
+    dap.appendChild(d);
+  }
+  // ---- 浮き葉（AIスプライトがあれば使用、なければSVG） ----
+  const floatL = document.getElementById('float');
+  const SPRITES = window.__LEAF_SPRITES || ['img-gen/leaf1.png','img-gen/leaf2.png','img-gen/leaf3.png','img-gen/leaf4.png','img-gen/leaf5.png','img-gen/leaf6.png'];
+  function addFloatLeaf(i) {
+    const x = 6 + rnd() * 86, y = 42 + rnd() * 50, s = 18 + rnd() * 26;
+    const du = (7 + rnd() * 8).toFixed(1), de = (-rnd() * 12).toFixed(1);
+    const r0 = (rnd() * 360).toFixed(0), r1 = (Number(r0) + (rnd() - .5) * 50).toFixed(0);
+    const dx = ((rnd() - .5) * 3).toFixed(1), dy = ((rnd() - .5) * 1.6).toFixed(1);
+    let el;
+    if (SPRITES && SPRITES.length) {
+      el = document.createElement('img');
+      el.src = SPRITES[i % SPRITES.length];
+      el.style.width = `${s * 1.6}px`;
+    } else {
+      el = document.createElementNS(NS, 'svg');
+      el.setAttribute('viewBox', '-14 -14 28 28');
+      el.style.width = `${s}px`; el.style.height = `${s}px`;
+      el.innerHTML = `<use href="#momiji" fill="${['#5da448','#6fb454','#7ec25f','#4e9440'][i % 4]}" transform="scale(${(0.9 + rnd() * .2).toFixed(2)})"/>`;
+    }
+    el.classList.add('fleaf');
+    el.style.cssText += `;left:${x}%;top:${y}%;--du:${du}s;--de:${de}s;--r0:${r0}deg;--r1:${r1}deg;--dx:${dx}vw;--dy:${dy}vh;--sy:${(0.55 + rnd() * 0.25).toFixed(2)}`;
+    floatL.appendChild(el);
+  }
+  for (let i = 0; i < 14; i++) addFloatLeaf(i);
+  // ---- 波紋 ----
+  const rings = document.getElementById('rings');
+  function ripple(xPct, yPct, size = 14) {
+    for (let i = 0; i < 3; i++) {
+      const r = document.createElement('div'); r.className = 'ring';
+      const s = size * (1 + i * 0.5);
+      r.style.cssText = `left:${xPct}%;top:${yPct}%;width:${s}vw;height:${(s * 0.34).toFixed(1)}vw;animation-delay:${i * 0.35}s`;
+      rings.appendChild(r); setTimeout(() => r.remove(), 3600 + i * 400);
+    }
+  }
+  stage.addEventListener('pointerdown', (e) => {
+    if (stage.classList.contains('exploded')) return;
+    const y = (e.clientY / innerHeight) * 100; if (y < 26) return;
+    ripple((e.clientX / innerWidth) * 100, y, 10 + Math.random() * 6);
+  });
+  // ---- 落ち葉 ----
+  const fall = document.getElementById('fall');
+  function dropLeaf() {
+    let leaf;
+    if (SPRITES && SPRITES.length) {
+      leaf = document.createElement('img');
+      leaf.src = SPRITES[Math.floor(Math.random() * SPRITES.length)];
+      leaf.classList.add('leaf');
+      leaf.style.width = '34px'; leaf.style.height = 'auto';
+    } else {
+      leaf = document.createElementNS(NS, 'svg');
+      leaf.setAttribute('viewBox', '-14 -14 28 28'); leaf.classList.add('leaf');
+      leaf.innerHTML = '<use href="#momiji" fill="#8fd166"/>';
+    }
+    const x0 = 20 + Math.random() * 55, y1 = 52 + Math.random() * 32;
+    leaf.style.cssText += `;left:${x0}%;top:14%`;
+    fall.appendChild(leaf);
+    const dur = 4200 + Math.random() * 1200;
+    leaf.animate([
+      { transform: 'translate(0, 0) rotate(0deg)', opacity: 0 },
+      { opacity: 1, offset: 0.08 },
+      { transform: `translate(${(Math.random() - 0.3) * 60}px, ${innerHeight * (y1 - 14) / 100 * 0.5}px) rotate(200deg)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(${(Math.random() - 0.5) * 90}px, ${innerHeight * (y1 - 14) / 100}px) rotate(380deg)`, opacity: 0.9 },
+    ], { duration: dur, easing: 'cubic-bezier(.4,.1,.6,.9)' }).onfinish = () => {
+      const rect = leaf.getBoundingClientRect();
+      ripple(((rect.left + rect.width / 2) / innerWidth) * 100, y1, 8);
+      leaf.animate([{ opacity: 0.9 }, { opacity: 0 }], { duration: 900 }).onfinish = () => leaf.remove();
+    };
+    setTimeout(dropLeaf, 6000 + Math.random() * 7000);
+  }
+  setTimeout(dropLeaf, 2500);
+  // ---- 雨 ----
+  const rain = document.getElementById('rain');
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div'); s.className = 'streak';
+    s.style.cssText = `left:${rnd() * 100}%;--du:${(0.7 + rnd() * 0.6).toFixed(2)}s;--de:${(-rnd() * 2).toFixed(2)}s;opacity:${(0.3 + rnd() * 0.5).toFixed(2)}`;
+    rain.appendChild(s);
+  }
+  let rainTimer = null;
+  document.getElementById('rainBtn').addEventListener('click', (e) => {
+    const on = stage.classList.toggle('rainy');
+    e.target.classList.toggle('on', on); e.target.textContent = on ? '雨を止ませる' : '雨を降らせる';
+    if (on) rainTimer = setInterval(() => ripple(5 + Math.random() * 90, 30 + Math.random() * 65, 3 + Math.random() * 3), 380);
+    else clearInterval(rainTimer);
+  });
+  // ---- パララックス / 分解 ----
+  let parallax = true, tx = 0, ty = 0, cx = 0, cy = 0;
+  addEventListener('pointermove', (e) => { tx = (e.clientX / innerWidth - .5) * 2; ty = (e.clientY / innerHeight - .5) * 2; });
+  (function tick() {
+    cx += (tx - cx) * .04; cy += (ty - cy) * .04;
+    if (parallax && !stage.classList.contains('exploded')) {
+      for (const l of layers) {
+        const z = Number(getComputedStyle(l).getPropertyValue('--z')) || 0;
+        const k = (z - 4) / 8;
+        l.style.transform = `translate(${cx * k * 26}px, ${cy * k * 14}px) scale(${1 + Math.abs(k) * .016})`;
+      }
+    }
+    requestAnimationFrame(tick);
+  })();
+  document.getElementById('explode').addEventListener('click', (e) => {
+    stage.classList.toggle('exploded'); e.target.classList.toggle('on', stage.classList.contains('exploded'));
+    if (stage.classList.contains('exploded')) layers.forEach((l) => (l.style.transform = ''));
+  });
+  document.getElementById('parallax').addEventListener('click', (e) => {
+    parallax = !parallax; e.target.classList.toggle('on', parallax); e.target.textContent = `視差 ${parallax ? 'ON' : 'OFF'}`;
+    if (!parallax) layers.forEach((l) => (l.style.transform = ''));
+  });
+</script>

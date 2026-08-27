@@ -1,0 +1,336 @@
+<meta charset="utf-8">
+<title>Pop Page Transitions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #FFF8EE;
+    --paper-2: #F6EAD6;
+    --ink: #1A1633;
+    --ink-2: #4B4668;
+    --line: #E4D8C2;
+    --pink: #FF4F9A;
+    --citrus: #FFD23F;
+    --aqua: #3EE0D8;
+    --ultra: #2B3CFF;
+    --grape: #7B2CFF;
+    --code-bg: #1A1633;
+    --code-fg: #F6EAD6;
+  }
+    :root[data-theme="dark"] {
+    --paper: #14122B;
+    --paper-2: #1E1B3A;
+    --ink: #FFF8EE;
+    --ink-2: #B9B3D6;
+    --line: #322D57;
+    --code-bg: #0C0B1C;
+    --code-fg: #F6EAD6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 36px; }
+  .eyebrow {
+    font-family: "DM Mono", ui-monospace, monospace;
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-2);
+  }
+  h1 {
+    font-family: "Bungee", "Zen Kaku Gothic New", sans-serif;
+    font-size: clamp(34px, 5vw, 60px);
+    line-height: 1.05; margin: 0; text-wrap: balance;
+    background: linear-gradient(90deg, var(--pink), var(--grape) 45%, var(--ultra) 75%, var(--aqua));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { margin: 0; max-width: 62ch; color: var(--ink-2); }
+
+  /* ---------- controls ---------- */
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: 700 15px/1 "Zen Kaku Gothic New", sans-serif;
+    padding: 14px 22px; border-radius: 999px; color: #1A1633;
+    background: var(--btn, var(--citrus));
+    box-shadow: 0 4px 0 #1A163355;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #1A163355; }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1A163355; }
+  .btn:focus-visible { outline: 3px solid var(--ultra); outline-offset: 3px; }
+  .btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); }
+
+  /* ---------- stage ---------- */
+  .stage {
+    position: relative; aspect-ratio: 16 / 10; width: 100%;
+    border-radius: 22px; overflow: hidden; isolation: isolate;
+    background: #1A1633;
+    box-shadow: 0 30px 60px -30px #1A163388, 0 0 0 1px var(--line);
+  }
+  .page {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: "Bungee", sans-serif; text-align: center;
+  }
+  .page .lbl {
+    font-family: "DM Mono", monospace; font-size: 13px; letter-spacing: .2em; opacity: .7;
+  }
+  .page h2 { margin: 0; font-size: clamp(36px, 7vw, 96px); line-height: 1; letter-spacing: .02em; }
+  .page .chip { display: inline-block; margin-top: 18px; padding: 8px 16px; border-radius: 999px; font: 500 13px "DM Mono", monospace; }
+  .page.a { background: radial-gradient(120% 90% at 20% 10%, #FFE7A3, #FFD23F 55%, #FFB13F); color: #1A1633; }
+  .page.b { background: radial-gradient(120% 90% at 80% 90%, #7B2CFF, #2B3CFF 55%, #1B1464); color: #FFF8EE; }
+  .page.a .chip { background: #1A1633; color: #FFD23F; }
+  .page.b .chip { background: #FFF8EE; color: #2B3CFF; }
+  /* before any run: A on top */
+  .page.b { opacity: 0; }
+
+  /* overlays live above both pages */
+  .fx { position: absolute; inset: 0; pointer-events: none; }
+
+  /* ===================================================
+     1. VORTEX WARP — 渦に吸い込まれて次のページが出てくる
+     =================================================== */
+  .vortex { opacity: 0; }
+  .vortex::before, .vortex::after {
+    content: ""; position: absolute; inset: -40%;
+    background: conic-gradient(from 0deg,
+      #2B3CFF, #3EE0D8 18%, #FFF8EE 30%, #FFD23F 42%, #1B1464 55%,
+      #3EE0D8 68%, #7B2CFF 80%, #2B3CFF);
+    filter: blur(14px) saturate(1.5);
+    -webkit-mask: radial-gradient(circle, #0000 6%, #000 14%, #000 100%);
+            mask: radial-gradient(circle, #0000 6%, #000 14%, #000 100%);
+  }
+  .vortex::after {
+    inset: -20%; opacity: .55; mix-blend-mode: screen;
+    background: conic-gradient(from 90deg, #0000 0 40%, #FFF8EE 50%, #0000 60% 100%);
+    filter: blur(6px);
+  }
+  .vortex .lens {
+    position: absolute; left: 50%; top: 50%; width: 26%; aspect-ratio: 1;
+    translate: -50% -50%; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #FFF8EEcc, #3EE0D866 40%, #1B146400 70%);
+    box-shadow: 0 0 0 3px #FFF8EE66, 0 0 80px 20px #3EE0D855, inset 0 0 40px #FFF8EE55;
+  }
+
+  .stage[data-run="vortex"] .page.a { animation: vx-page-out 1.15s cubic-bezier(.7, 0, .3, 1) forwards; }
+  .stage[data-run="vortex"] .page.b { animation: vx-page-in 1.0s .85s cubic-bezier(.2, .9, .2, 1.05) forwards; }
+  .stage[data-run="vortex"] .vortex { animation: vx-fade 1.9s ease-in-out forwards; }
+  .stage[data-run="vortex"] .vortex::before { animation: vx-spin 1.9s cubic-bezier(.5, 0, .2, 1) forwards; }
+  .stage[data-run="vortex"] .vortex::after { animation: vx-spin-rev 1.9s cubic-bezier(.5, 0, .2, 1) forwards; }
+  .stage[data-run="vortex"] .vortex .lens { animation: vx-lens 1.9s ease-in-out forwards; }
+
+  @keyframes vx-page-out {
+    0%   { transform: none; filter: blur(0); opacity: 1; }
+    60%  { filter: blur(2px); }
+    100% { transform: rotate(160deg) scale(.02); filter: blur(10px); opacity: 0; }
+  }
+  @keyframes vx-page-in {
+    0%   { transform: rotate(-120deg) scale(.05); filter: blur(12px); opacity: 0; }
+    55%  { opacity: 1; filter: blur(3px); }
+    100% { transform: none; filter: blur(0); opacity: 1; }
+  }
+  @keyframes vx-fade {
+    0% { opacity: 0; } 20% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; }
+  }
+  @keyframes vx-spin {
+    0%   { transform: rotate(0) scale(1.4); }
+    50%  { transform: rotate(420deg) scale(1); }
+    100% { transform: rotate(900deg) scale(2.6); }
+  }
+  @keyframes vx-spin-rev {
+    0%   { transform: rotate(0) scale(1.2); }
+    100% { transform: rotate(-720deg) scale(2.2); }
+  }
+  @keyframes vx-lens {
+    0%   { scale: .2; opacity: 0; }
+    40%  { scale: 1; opacity: 1; }
+    70%  { scale: .9; }
+    100% { scale: 9; opacity: 0; }
+  }
+
+  /* ===================================================
+     2. BUBBLE POP — キャンディ色の泡が弾けて画面を覆う
+     =================================================== */
+  .bubbles { overflow: hidden; }
+  .bubbles i {
+    position: absolute; border-radius: 50%; scale: 0;
+    width: var(--s); aspect-ratio: 1; left: var(--x); top: var(--y);
+    translate: -50% -50%; background: var(--c);
+    box-shadow: inset -0.06em -0.08em 0 #1A163322, inset 0.08em 0.1em 0 #FFF8EE66;
+  }
+  .stage[data-run="bubbles"] .bubbles i {
+    animation: bb-pop 1.5s cubic-bezier(.34, 1.56, .64, 1) forwards;
+    animation-delay: calc(var(--i) * 55ms);
+  }
+  .stage[data-run="bubbles"] .page.a { animation: bb-a 0.5s .8s ease-in forwards; }
+  .stage[data-run="bubbles"] .page.b { animation: bb-b 0.7s .95s cubic-bezier(.34, 1.56, .64, 1) forwards; }
+
+  @keyframes bb-pop {
+    0%   { scale: 0; }
+    45%  { scale: 1.08; }
+    62%  { scale: 1; }
+    100% { scale: 0; }
+  }
+  @keyframes bb-a { to { scale: .92; opacity: 0; } }
+  @keyframes bb-b { from { scale: .8; opacity: 0; } to { scale: 1; opacity: 1; } }
+
+  /* ===================================================
+     3. COMIC SLASH — 斜めストライプが走って、ページが飛び出す
+     =================================================== */
+  .slash { overflow: hidden; opacity: 0; }
+  .stage[data-run="slash"] .slash { opacity: 1; }
+  .slash i {
+    position: absolute; top: -20%; height: 140%; width: 24%;
+    left: calc(var(--i) * 17% - 8%);
+    background: var(--c); translate: -600% 0; skew: -18deg;
+  }
+  .slash .burst {
+    position: absolute; left: 50%; top: 50%; translate: -50% -50%; scale: 0;
+    width: 34%; aspect-ratio: 1;
+    background: #FFD23F;
+    clip-path: polygon(50% 0, 61% 30%, 92% 22%, 72% 48%, 100% 62%, 66% 66%, 76% 98%, 50% 78%, 24% 98%, 34% 66%, 0 62%, 28% 48%, 8% 22%, 39% 30%);
+    display: grid; place-items: center;
+    font: 900 clamp(18px, 4vw, 48px) "Bungee", sans-serif; color: #1A1633;
+  }
+  .stage[data-run="slash"] .slash i {
+    animation: sl-stripe 1.25s cubic-bezier(.65, 0, .25, 1) forwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+  .stage[data-run="slash"] .slash .burst { animation: sl-burst 1.1s .45s cubic-bezier(.34, 1.56, .64, 1) forwards; }
+  .stage[data-run="slash"] .page.a { animation: sl-a .4s .35s ease-in forwards; }
+  .stage[data-run="slash"] .page.b { animation: sl-b .7s .75s cubic-bezier(.34, 1.56, .64, 1) forwards; }
+
+  @keyframes sl-stripe {
+    0%   { translate: -600% 0; }
+    40%  { translate: 0 0; }
+    60%  { translate: 0 0; }
+    100% { translate: 600% 0; }
+  }
+  @keyframes sl-burst {
+    0%   { scale: 0; rotate: -20deg; }
+    35%  { scale: 1.15; rotate: 8deg; }
+    55%  { scale: 1; rotate: 0deg; }
+    100% { scale: 0; rotate: 30deg; }
+  }
+  @keyframes sl-a { to { translate: -12% 0; opacity: 0; } }
+  @keyframes sl-b { from { scale: .6; opacity: 0; rotate: -4deg; } to { scale: 1; opacity: 1; rotate: 0deg; } }
+
+  
+  /* ---------- notes + code ---------- */
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
+  .note {
+    border: 1px solid var(--line); border-radius: 18px; padding: 22px 22px 18px;
+    background: var(--paper-2); display: flex; flex-direction: column; gap: 12px;
+  }
+  .note h3 { margin: 0; font: 700 20px/1.2 "Zen Kaku Gothic New", sans-serif; display: flex; align-items: center; gap: 10px; }
+  .note h3 .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 25%, transparent); }
+  .note p { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+  .note dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font: 500 12.5px/1.6 "DM Mono", monospace; }
+  .note dt { color: var(--ink-2); }
+  .note dd { margin: 0; }
+  pre {
+    margin: 0; padding: 16px; border-radius: 12px; background: var(--code-bg); color: var(--code-fg);
+    font: 12.5px/1.55 "DM Mono", ui-monospace, monospace; overflow-x: auto; max-height: 320px;
+  }
+  .copy { align-self: flex-start; margin-top: 2px; --btn: var(--aqua); padding: 10px 16px; font-size: 13px; }
+  footer { margin-top: 40px; font: 12.5px "DM Mono", monospace; color: var(--ink-2); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">CSS only · page transitions · 3 variants</div>
+    <h1>Pop Page Transitions</h1>
+    <p>ページ遷移を CSS アニメーションだけで組んだ3種。JSはクラスを付け替えるだけで、動きは全部 <code>@keyframes</code>。ボタンを押すとステージで再生。</p>
+  </header>
+
+  <div class="controls">
+    <button class="btn" data-fx="vortex" style="--btn:#3EE0D8">1 · Vortex Warp</button>
+    <button class="btn" data-fx="bubbles" style="--btn:#FF4F9A">2 · Bubble Pop</button>
+    <button class="btn" data-fx="slash" style="--btn:#FFD23F">3 · Comic Slash</button>
+    <button class="btn ghost" data-reset>リセット</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="page a"><div><div class="lbl">PAGE A</div><h2>HOME</h2><span class="chip">before</span></div></div>
+    <div class="page b"><div><div class="lbl">PAGE B</div><h2>ABOUT</h2><span class="chip">after</span></div></div>
+
+    <div class="fx vortex"><div class="lens"></div></div>
+
+    <div class="fx bubbles">
+      <i style="--i:0;--x:18%;--y:70%;--s:26%;--c:#FF4F9A"></i>
+      <i style="--i:1;--x:72%;--y:22%;--s:30%;--c:#3EE0D8"></i>
+      <i style="--i:2;--x:40%;--y:30%;--s:20%;--c:#FFD23F"></i>
+      <i style="--i:3;--x:85%;--y:75%;--s:34%;--c:#7B2CFF"></i>
+      <i style="--i:4;--x:55%;--y:60%;--s:44%;--c:#2B3CFF"></i>
+      <i style="--i:5;--x:12%;--y:20%;--s:22%;--c:#FFD23F"></i>
+      <i style="--i:6;--x:30%;--y:88%;--s:36%;--c:#3EE0D8"></i>
+      <i style="--i:7;--x:65%;--y:90%;--s:24%;--c:#FF4F9A"></i>
+      <i style="--i:8;--x:50%;--y:10%;--s:38%;--c:#FF4F9A"></i>
+      <i style="--i:9;--x:92%;--y:45%;--s:28%;--c:#FFD23F"></i>
+      <i style="--i:10;--x:8%;--y:48%;--s:40%;--c:#7B2CFF"></i>
+      <i style="--i:11;--x:50%;--y:50%;--s:120%;--c:#2B3CFF"></i>
+    </div>
+
+    <div class="fx slash">
+      <i style="--i:0;--c:#FF4F9A"></i>
+      <i style="--i:1;--c:#FFD23F"></i>
+      <i style="--i:2;--c:#3EE0D8"></i>
+      <i style="--i:3;--c:#7B2CFF"></i>
+      <i style="--i:4;--c:#FF4F9A"></i>
+      <i style="--i:5;--c:#FFD23F"></i>
+      <i style="--i:6;--c:#3EE0D8"></i>
+      <div class="burst">POP!</div>
+    </div>
+  </div>
+
+  <section class="notes">
+    <article class="note" style="--c:#3EE0D8">
+      <h3><span class="dot"></span>1 · Vortex Warp</h3>
+      <p>参照画像の渦。<code>conic-gradient</code> を2層重ね、逆回転＋<code>blur</code>で流体っぽさを出す。中央のレンズは <code>radial-gradient</code> + <code>box-shadow</code>。旧ページは回転しながら中心へ縮み、新ページは逆回転で膨らんで出てくる。</p>
+      <dl><dt>duration</dt><dd>1.9s</dd><dt>feel</dt><dd>吸い込み → 放出</dd><dt>要素</dt><dd>overlay 1つ + 疑似要素2つ</dd></dl>
+      <pre id="code-vortex"></pre>
+      <button class="btn copy" data-copy="code-vortex">CSSをコピー</button>
+    </article>
+
+    <article class="note" style="--c:#FF4F9A">
+      <h3><span class="dot"></span>2 · Bubble Pop</h3>
+      <p>12個の泡が <code>--i</code> の順に <code>cubic-bezier(.34,1.56,.64,1)</code> で弾み、最後の巨大な泡が画面を覆った瞬間にページが入れ替わる。位置・サイズ・色は全部カスタムプロパティなので、泡を増やすのはHTML1行。</p>
+      <dl><dt>duration</dt><dd>1.5s + stagger</dd><dt>feel</dt><dd>ぷちぷち → どん</dd><dt>要素</dt><dd>&lt;i&gt; × 12</dd></dl>
+      <pre id="code-bubbles"></pre>
+      <button class="btn copy" data-copy="code-bubbles">CSSをコピー</button>
+    </article>
+
+    <article class="note" style="--c:#FFD23F">
+      <h3><span class="dot"></span>3 · Comic Slash</h3>
+      <p>斜めのストライプ7本が左から滑り込んで画面を塗り、集中線のような勢いで右へ抜ける。塗りきったタイミングで「POP!」の爆発スターが弾け、新ページがオーバーシュート付きで飛び出す。</p>
+      <dl><dt>duration</dt><dd>1.25s + stagger</dd><dt>feel</dt><dd>シャッ → ドン！</dd><dt>要素</dt><dd>&lt;i&gt; × 7 + burst</dd></dl>
+      <pre id="code-slash"></pre>
+      <button class="btn copy" data-copy="code-slash">CSSをコピー</button>
+    </article>
+  </section>
+
+  <footer>Bungee / Zen Kaku Gothic New / DM Mono · 動きは全て @keyframes、JSはトリガーとコピーのみ · prefers-reduced-motion 対応</footer>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const run = (fx) => {
+    stage.removeAttribute('data-run');
+    void stage.offsetWidth;            // reflow → 同じ遷移を再生可能に
+    stage.setAttribute('data-run', fx);
+  };
+  document.querySelectorAll('[data-fx]').forEach(b => b.addEventListener('click', () => run(b.dataset.fx)));
+  document.querySelector('[data-reset]').addEventListener('click', () => stage.removeAttribute('data-run'));
+
+  // ステージ内の該当CSSをそのままコード欄に表示
+  const css = document.querySelector('style').textContent;
+  const blockStart = (mark) => css.lastIndexOf('/* ===', css.indexOf(mark));
+  const slice = (startMark, endMark) => {
+    const s = blockStart(startMark);
+    const e = endMark ? blockStart(endMark) : css.indexOf('));
+</script>

@@ -1,0 +1,457 @@
+<template>
+<div id="root" data-composition-id="07-ambient-nature" data-start="0" data-duration="16.899" data-width="1920" data-height="1080">
+  <style>
+    /* Barlow + IBM Plex Mono ship locally in this project (assets/fonts/) — point at the real
+       files. Japanese text uses "Noto Sans JP": one of the renderer's pre-bundled embedded
+       families (no local file / @font-face needed, no lint warning, renders offline/
+       deterministically) — see compositions/frames/03-point-nature.html for the same pattern.
+       Barlow's lowercase-display signature has no CJK equivalent, so it stays scoped to the
+       Latin formula + mono chrome; the headline and supporting caption are Japanese. */
+    @font-face {
+      font-family: 'Barlow';
+      font-weight: 600;
+      font-style: normal;
+      src: url('assets/fonts/Barlow_600.woff2') format('woff2');
+      font-display: block;
+    }
+    @font-face {
+      font-family: 'Barlow';
+      font-weight: 700;
+      font-style: normal;
+      src: url('assets/fonts/Barlow_700.woff2') format('woff2');
+      font-display: block;
+    }
+    @font-face {
+      font-family: 'Barlow';
+      font-weight: 900;
+      font-style: normal;
+      src: url('assets/fonts/Barlow_900.woff2') format('woff2');
+      font-display: block;
+    }
+    @font-face {
+      font-family: 'IBM Plex Mono';
+      font-weight: 500;
+      font-style: normal;
+      src: url('assets/fonts/IBM_Plex_Mono_500.woff2') format('woff2');
+      font-display: block;
+    }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      font-family: 'Barlow', 'Noto Sans JP', sans-serif;
+      color: #F0ECE5;
+      /* Dependable ground stays the .amb07-bg clip layer below (never remove that); this is a
+         supplementary dark backstop so any ancestor-walk background lookup (contrast tooling
+         included) resolves to the true ink-black ground instead of an undetermined/assumed
+         value, since .amb07-bg is a sibling of the text layers, not their ancestor. */
+      background-color: #111111;
+      -webkit-font-smoothing: antialiased;
+    }
+    #root, #root *, #root *::before, #root *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ---- track 0: ground + ambient wash ---- */
+    .amb07-bg { position: absolute; inset: 0; z-index: 0; }
+    .amb07-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(40,40,38,0.55) 0px, rgba(40,40,38,0.55) 1px, transparent 1px, transparent 96px),
+        repeating-linear-gradient(90deg, rgba(40,40,38,0.55) 0px, rgba(40,40,38,0.55) 1px, transparent 1px, transparent 96px);
+      opacity: 0.32;
+    }
+    .amb07-glow {
+      position: absolute;
+      left: 960px;
+      top: 520px;
+      width: 1100px;
+      height: 1100px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,93,38,0.35) 0%, rgba(232,93,38,0) 65%);
+      opacity: 0.08;
+    }
+    .amb07-stage-wash {
+      position: absolute;
+      inset: 0;
+      background: #F0ECE5;
+      opacity: 0;
+      mix-blend-mode: overlay;
+    }
+
+    /* ---- track 1: dome diagram ---- */
+    .amb07-diagram { position: absolute; inset: 0; z-index: 1; }
+    .amb07-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .amb07-arc-path {
+      fill: none;
+      stroke: #E85D26;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 10px rgba(232,93,38,0.45));
+    }
+    .amb07-ground-line {
+      stroke: #282826;
+      stroke-width: 2;
+    }
+    .amb07-arrows { position: absolute; inset: 0; }
+    .amb07-arrow {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 16px;
+      background: linear-gradient(90deg, rgba(232,93,38,0) 0%, rgba(232,93,38,0.85) 70%, rgba(232,93,38,1) 100%);
+      clip-path: polygon(0% 35%, 62% 35%, 62% 8%, 100% 50%, 62% 92%, 62% 65%, 0% 65%);
+      filter: drop-shadow(0 0 6px rgba(232,93,38,0.5));
+      will-change: transform, opacity;
+    }
+    .amb07-sphere-wrap {
+      position: absolute;
+      left: 915px;
+      top: 610px;
+      width: 90px;
+      height: 90px;
+    }
+    .amb07-sphere-base {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #2a2a26 0%, #171715 50%, #111111 100%);
+      border: 1px solid rgba(240,236,229,0.15);
+    }
+    .amb07-sphere-glow {
+      position: absolute;
+      inset: -14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,93,38,0.55) 0%, rgba(232,93,38,0.18) 45%, rgba(232,93,38,0) 75%);
+      opacity: 0.16;
+      filter: blur(2px);
+      mix-blend-mode: screen;
+      transform-origin: center center;
+    }
+
+    /* ---- track 2: missing source glyph + dissolve ---- */
+    .amb07-source { position: absolute; inset: 0; z-index: 2; }
+    .amb07-source-glyph {
+      position: absolute;
+      left: 910px;
+      top: 330px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 2px dashed rgba(240,236,229,0.4);
+      background: rgba(26,26,24,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      font-size: 2.6cqw;
+      color: #888880;
+      transform-origin: center center;
+    }
+    .amb07-particle-field {
+      position: absolute;
+      left: 960px;
+      top: 380px;
+      width: 0;
+      height: 0;
+    }
+    .amb07-particle {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border-radius: 50%;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    /* ---- track 3: formula ---- */
+    .amb07-formula-clip { position: absolute; inset: 0; z-index: 3; }
+    .amb07-formula {
+      position: absolute;
+      top: 740px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .amb07-formula-row {
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+      white-space: nowrap;
+    }
+    .amb07-term {
+      font-size: 2.8cqw;
+      line-height: 1.1;
+      transform-origin: center center;
+    }
+    .amb07-term-ambient { font-weight: 900; color: #E85D26; text-transform: lowercase; }
+    .amb07-term-eq { font-weight: 700; color: #F0ECE5; }
+    .amb07-term-times { font-weight: 700; color: #F0ECE5; }
+    .amb07-term-sky { font-weight: 700; color: #F0ECE5; text-transform: lowercase; }
+    .amb07-term-ka {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      color: #F0ECE5;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .amb07-ka-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      color: #E85D26;
+      font-variant-numeric: tabular-nums;
+      display: inline-block;
+      min-width: 2.6ch;
+      transform-origin: center center;
+    }
+    .amb07-formula-label {
+      font-family: "Noto Sans JP", sans-serif;
+      font-weight: 400;
+      font-size: 0.9cqw;
+      color: #888880;
+    }
+
+    /* ---- track 4: chrome ---- */
+    .amb07-chrome { position: absolute; inset: 0; z-index: 4; }
+    .amb07-eyebrow {
+      position: absolute;
+      left: 140px;
+      top: 108px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      font-size: 0.72cqw;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #E85D26;
+    }
+    .amb07-h3 {
+      position: absolute;
+      left: 140px;
+      top: 150px;
+      max-width: 640px;
+      font-family: "Noto Sans JP", sans-serif;
+      font-weight: 700;
+      font-size: 2.8cqw;
+      line-height: 1.2;
+      color: #F0ECE5;
+    }
+  </style>
+
+  <div class="clip amb07-bg" data-start="0" data-duration="16.899" data-track-index="0">
+    <div class="amb07-grid"></div>
+    <div class="amb07-glow" id="amb07-glow"></div>
+    <div class="amb07-stage-wash" id="amb07-stage-wash"></div>
+  </div>
+
+  <div class="clip amb07-diagram" data-start="0" data-duration="16.899" data-track-index="1">
+    <svg class="amb07-svg" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+      <path id="amb07-arc" class="amb07-arc-path" d="M 460 700 A 500 500 0 0 1 1460 700"></path>
+      <line id="amb07-ground" class="amb07-ground-line" x1="460" y1="700" x2="1460" y2="700"></line>
+    </svg>
+    <div class="amb07-arrows" id="amb07-arrows"></div>
+    <div class="amb07-sphere-wrap" id="amb07-sphere-wrap">
+      <div class="amb07-sphere-base"></div>
+      <div class="amb07-sphere-glow" id="amb07-sphere-glow"></div>
+    </div>
+  </div>
+
+  <div class="clip amb07-source" data-start="0" data-duration="16.899" data-track-index="2">
+    <div class="amb07-source-glyph" id="amb07-source-glyph">?</div>
+    <div class="amb07-particle-field" id="amb07-particle-field"></div>
+  </div>
+
+  <div class="clip amb07-formula-clip" data-start="0" data-duration="16.899" data-track-index="3">
+    <div class="amb07-formula">
+      <div class="amb07-formula-row" id="amb07-formula-row">
+        <span class="amb07-term amb07-term-ambient" id="amb07-term-ambient">ambient</span>
+        <span class="amb07-term amb07-term-eq" id="amb07-term-eq">=</span>
+        <span class="amb07-term amb07-term-ka" id="amb07-term-ka">ka <span class="amb07-ka-value" id="amb07-ka-value">0.00</span></span>
+        <span class="amb07-term amb07-term-times" id="amb07-term-times">&#215;</span>
+        <span class="amb07-term amb07-term-sky" id="amb07-term-sky">skyColor</span>
+      </div>
+      <div class="amb07-formula-label" id="amb07-formula-label">ベースの明るさ</div>
+    </div>
+  </div>
+
+  <div class="clip amb07-chrome" data-start="0" data-duration="16.899" data-track-index="4">
+    <div class="amb07-eyebrow" id="amb07-eyebrow">03 &#8212; AMBIENT / SKY LIGHT</div>
+    <div class="amb07-h3" id="amb07-h3">環境光</div>
+  </div>
+
+  <script>
+    (function () {
+      var prand = function (n) {
+        var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      };
+
+      var arcPath = document.getElementById('amb07-arc');
+      var groundLine = document.getElementById('amb07-ground');
+      var arrowsField = document.getElementById('amb07-arrows');
+      var particleField = document.getElementById('amb07-particle-field');
+      var sourceGlyph = document.getElementById('amb07-source-glyph');
+      var sphereGlow = document.getElementById('amb07-sphere-glow');
+      var kaValueEl = document.getElementById('amb07-ka-value');
+      var eyebrowEl = document.getElementById('amb07-eyebrow');
+      var h3El = document.getElementById('amb07-h3');
+      var formulaLabelEl = document.getElementById('amb07-formula-label');
+      var termAmbient = document.getElementById('amb07-term-ambient');
+      var termEq = document.getElementById('amb07-term-eq');
+      var termKa = document.getElementById('amb07-term-ka');
+      var termTimes = document.getElementById('amb07-term-times');
+      var termSky = document.getElementById('amb07-term-sky');
+      var glowEl = document.getElementById('amb07-glow');
+      var washEl = document.getElementById('amb07-stage-wash');
+
+      /* ---- self-draw setup: dome arc + ground line (dasharray is static, dashoffset is the reveal) ---- */
+      var arcLen = arcPath.getTotalLength();
+      gsap.set(arcPath, { strokeDasharray: arcLen });
+      var groundLen = 1000; /* |1460 - 460| */
+      gsap.set(groundLine, { strokeDasharray: groundLen });
+
+      /* ---- ray data: outer point on the dome, inward delta toward the sphere ---- */
+      var rays = [
+        { ox: 468,  oy: 613, dx: 206,  dy: 37,  rot: 10 },
+        { ox: 527,  oy: 450, dx: 182,  dy: 105, rot: 30 },
+        { ox: 639,  oy: 317, dx: 135,  dy: 161, rot: 50 },
+        { ox: 789,  oy: 230, dx: 72,   dy: 197, rot: 70 },
+        { ox: 960,  oy: 200, dx: 0,    dy: 210, rot: 90 },
+        { ox: 1131, oy: 230, dx: -72,  dy: 197, rot: 110 },
+        { ox: 1282, oy: 317, dx: -135, dy: 161, rot: 130 },
+        { ox: 1393, oy: 450, dx: -182, dy: 105, rot: 150 },
+        { ox: 1453, oy: 613, dx: -206, dy: 37,  rot: 170 }
+      ];
+      var arrowEls = rays.map(function (r) {
+        var el = document.createElement('div');
+        el.className = 'amb07-arrow';
+        el.style.left = r.ox + 'px';
+        el.style.top = r.oy + 'px';
+        arrowsField.appendChild(el);
+        return el;
+      });
+
+      /* ---- dissolve particle pool: seeded once, positions are pure functions of T ---- */
+      var PARTICLE_COUNT = 26;
+      var palette = ['#F0ECE5', '#E85D26', '#888880'];
+      var BLOCK_W = 90, BLOCK_H = 90, G_DISSOLVE = 60;
+      var parts = [];
+      for (var i = 0; i < PARTICLE_COUNT; i++) {
+        var el = document.createElement('div');
+        el.className = 'amb07-particle';
+        var size = 4 + prand(i * 3 + 1) * 3;
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.background = palette[i % palette.length];
+        particleField.appendChild(el);
+        var ox = (prand(i * 13 + 5) - 0.5) * BLOCK_W;
+        var oy = (prand(i * 19 + 9) - 0.5) * BLOCK_H;
+        var angle = prand(i * 5 + 2) * Math.PI * 2;
+        var speed = 60 + prand(i * 7 + 3) * 80;
+        parts.push({
+          el: el,
+          ox: ox,
+          oy: oy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed
+        });
+      }
+
+      /* ---- timeline ---- */
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* Scene 1 (0.0-4.62s): chrome intro, dome self-draws overhead, source glyph settles in,
+         light arrows converge inward from the arc (center-outward-expansion, reversed). */
+      tl.fromTo(eyebrowEl, { x: -16, opacity: 0 }, { x: 0, opacity: 1, duration: 0.59, ease: 'power2.out' }, 0.06);
+      tl.fromTo(arcPath, { strokeDashoffset: arcLen }, { strokeDashoffset: 0, duration: 1.66, ease: 'power2.inOut' }, 0.18);
+      tl.fromTo(h3El, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.59, ease: 'power2.out' }, 0.36);
+      tl.fromTo(groundLine, { strokeDashoffset: groundLen }, { strokeDashoffset: 0, duration: 0.59, ease: 'power2.out' }, 0.41);
+      tl.fromTo('#amb07-sphere-wrap', { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.59, ease: 'power2.out' }, 0.65);
+      tl.fromTo(sourceGlyph, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.59, ease: 'power2.out' }, 1.13);
+
+      var ARROW_ENTRY_AT = 1.84, ARROW_STAGGER = 0.07, ARROW_DUR = 1.42;
+      arrowEls.forEach(function (el, i) {
+        var r = rays[i];
+        tl.fromTo(
+          el,
+          { xPercent: -50, yPercent: -50, x: 0, y: 0, rotation: r.rot, scale: 0.6, opacity: 0 },
+          { xPercent: -50, yPercent: -50, x: r.dx, y: r.dy, rotation: r.rot, scale: 1, opacity: 1, duration: ARROW_DUR, ease: 'power3.out' },
+          ARROW_ENTRY_AT + i * ARROW_STAGGER
+        );
+      });
+
+      /* Scene 2 (4.62-8.77s): the placeholder source dissolves - there is no source - then
+         the stage brightens very slightly (particle-burst, glyph-dissolve variant). */
+      var BURST_AT = 5.10, FLIGHT_DUR = 1.54;
+      tl.fromTo(sourceGlyph, { opacity: 1 }, { opacity: 0, duration: 0.47, ease: 'power1.out' }, BURST_AT);
+      var drive = { T: 0 };
+      tl.fromTo(
+        drive,
+        { T: 0 },
+        {
+          T: 1,
+          duration: FLIGHT_DUR,
+          ease: 'none',
+          onUpdate: function () {
+            var t = drive.T * FLIGHT_DUR;
+            var fadeIn = Math.min(1, drive.T / 0.15);
+            var fadeOut = Math.min(1, (1 - drive.T) / 0.3);
+            var op = drive.T === 0 ? 0 : Math.min(fadeIn, fadeOut);
+            for (var p = 0; p < parts.length; p++) {
+              var part = parts[p];
+              var x = part.ox + part.vx * t;
+              var y = part.oy + part.vy * t + 0.5 * G_DISSOLVE * t * t;
+              part.el.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+              part.el.style.opacity = String(op);
+            }
+          }
+        },
+        BURST_AT
+      );
+      tl.fromTo(glowEl, { opacity: 0.08 }, { opacity: 0.16, duration: 1.90, ease: 'power1.inOut' }, 6.64);
+      tl.fromTo(washEl, { opacity: 0 }, { opacity: 0.05, duration: 1.90, ease: 'power1.inOut' }, 6.64);
+
+      /* Scene 3 (8.77-13.98s): ambient = ka x skyColor builds term by term; the test sphere's
+         brightness lifts uniformly with the ka tick (counting-dynamic-scale, small). Every
+         reveal here lands and settles well before ~12.80s so nothing is caught mid-fade. */
+      tl.fromTo(termAmbient, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.41, ease: 'power2.out' }, 8.77);
+      tl.fromTo(termEq, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.36, ease: 'power2.out' }, 9.18);
+      tl.fromTo(termKa, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.41, ease: 'power2.out' }, 9.54);
+
+      var kaState = { value: 0 };
+      var COUNT_DUR = 1.78, COUNT_EASE = 'power2.out', START_SCALE = 0.85;
+      tl.to(kaState, {
+        value: 0.35,
+        duration: COUNT_DUR,
+        ease: COUNT_EASE,
+        onUpdate: function () {
+          kaValueEl.textContent = kaState.value.toFixed(2);
+        }
+      }, 9.95);
+      tl.fromTo(kaValueEl, { scale: START_SCALE }, { scale: 1, duration: COUNT_DUR, ease: COUNT_EASE }, 9.95);
+      tl.fromTo(sphereGlow, { opacity: 0.16 }, { opacity: 0.68, duration: COUNT_DUR, ease: COUNT_EASE }, 9.95);
+
+      tl.fromTo(termTimes, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.36, ease: 'power2.out' }, 11.73);
+      tl.fromTo(termSky, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.41, ease: 'power2.out' }, 12.09);
+      tl.fromTo(formulaLabelEl, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.53, ease: 'power2.out' }, 12.26);
+
+      /* Scene 4 (13.98s-end): hold - the lit scene settles, nothing new front-loads. */
+
+      window.__timelines['07-ambient-nature'] = tl;
+    })();
+  </script>
+</div>
+</template>

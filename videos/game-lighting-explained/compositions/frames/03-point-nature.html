@@ -1,0 +1,406 @@
+<template>
+<style>
+  /* IBM Plex Mono ships locally in this project (assets/fonts/) — point at the real file.
+     Japanese text uses "Noto Sans JP": one of the renderer's pre-bundled embedded families
+     (no local file needed, no lint warning, renders offline/deterministically). Barlow's
+     lowercase-display signature has no CJK equivalent (frame.md's own acknowledged gap), so
+     it is not used here — every visible word in this frame is Japanese except the mono chrome. */
+  @font-face { font-family: 'IBM Plex Mono'; src: url('assets/fonts/IBM_Plex_Mono_500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: block; }
+
+  #root {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    container-type: size;
+    font-family: "Noto Sans JP", sans-serif;
+  }
+
+  #point-nature-03-bg {
+    position: absolute;
+    inset: 0;
+    background-color: #111111;
+    background-image:
+      radial-gradient(ellipse 1400px 900px at 50% 42%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.4) 100%),
+      linear-gradient(rgba(240, 236, 229, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240, 236, 229, 0.05) 1px, transparent 1px);
+    background-size: auto, 96px 96px, 96px 96px;
+  }
+
+  #point-nature-03-kicker-wrap {
+    position: absolute;
+    left: 100px;
+    top: 76px;
+  }
+
+  .point-nature-03-kicker {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 0.9cqw;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #E85D26;
+  }
+
+  .point-nature-03-kicker-word {
+    display: inline-block;
+  }
+
+  .point-nature-03-headline {
+    margin: 14px 0 0;
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    font-size: 2.8cqw;
+    line-height: 1.2;
+    color: #F0ECE5;
+  }
+
+  #point-nature-03-diagram {
+    position: absolute;
+    inset: 0;
+  }
+
+  #point-nature-03-glow {
+    position: absolute;
+    left: 720px;
+    top: 214px;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(196, 66, 20, 0.55) 0%, rgba(196, 66, 20, 0.22) 42%, rgba(196, 66, 20, 0) 72%);
+    z-index: 1;
+    opacity: 0;
+  }
+
+  #point-nature-03-diagram-svg {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    z-index: 2;
+  }
+
+  .point-nature-03-ray {
+    stroke: #E85D26;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.85;
+  }
+
+  .point-nature-03-ring {
+    fill: none;
+    stroke: #505048;
+    stroke-width: 2;
+  }
+
+  .point-nature-03-node-socket {
+    fill: none;
+    stroke: #282826;
+    stroke-width: 1.5;
+  }
+
+  .point-nature-03-node-fill {
+    fill: #E85D26;
+  }
+
+  /* transform-origin pinned to each circle's own center in SVG user-space (viewBox is 1:1
+     with canvas px here) so the GSAP scale grows from the node itself, not the SVG's 0,0. */
+  #point-nature-03-node-fill-1 { transform-origin: 1063.9px 394px; }
+  #point-nature-03-node-fill-2 { transform-origin: 1133.2px 354px; }
+  #point-nature-03-node-fill-3 { transform-origin: 1202.5px 314px; }
+
+  .point-nature-03-dist-label {
+    position: absolute;
+    z-index: 3;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 0.85cqw;
+    letter-spacing: 0.04em;
+    color: #888880;
+    opacity: 0;
+  }
+
+  #point-nature-03-chip-wrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 792px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .point-nature-03-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 380px;
+    padding: 16px 40px;
+    background: #1A1A18;
+    border: 1px solid #E85D26;
+    opacity: 0;
+  }
+
+  .point-nature-03-chip-text {
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    font-size: 1.6cqw;
+    color: #F0ECE5;
+    white-space: nowrap;
+  }
+</style>
+
+<div id="root" data-composition-id="03-point-nature" data-width="1920" data-height="1080" data-duration="17.258">
+  <div id="point-nature-03-bg" class="clip" data-start="0" data-duration="17.258" data-track-index="0"></div>
+
+  <div id="point-nature-03-kicker-wrap" class="clip" data-start="0" data-duration="17.258" data-track-index="1">
+    <div class="point-nature-03-kicker" id="point-nature-03-kicker">
+      <span class="point-nature-03-kicker-word">01</span> <span class="point-nature-03-kicker-word">—</span> <span class="point-nature-03-kicker-word">POINT</span> <span class="point-nature-03-kicker-word">LIGHT</span>
+    </div>
+    <h3 class="point-nature-03-headline" id="point-nature-03-headline">点光源</h3>
+  </div>
+
+  <div id="point-nature-03-diagram" class="clip" data-start="0" data-duration="17.258" data-track-index="2">
+    <div id="point-nature-03-glow"></div>
+
+    <svg id="point-nature-03-diagram-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+      <!-- 12 radiating rays, 30deg apart, r 44 -> 300 from (960,454) -->
+      <line class="point-nature-03-ray" x1="1004" y1="454" x2="1260" y2="454"></line>
+      <line class="point-nature-03-ray" x1="998.1" y1="476" x2="1219.8" y2="604"></line>
+      <line class="point-nature-03-ray" x1="982" y1="492.1" x2="1110" y2="713.8"></line>
+      <line class="point-nature-03-ray" x1="960" y1="498" x2="960" y2="754"></line>
+      <line class="point-nature-03-ray" x1="938" y1="492.1" x2="810" y2="713.8"></line>
+      <line class="point-nature-03-ray" x1="921.9" y1="476" x2="700.2" y2="604"></line>
+      <line class="point-nature-03-ray" x1="916" y1="454" x2="660" y2="454"></line>
+      <line class="point-nature-03-ray" x1="921.9" y1="432" x2="700.2" y2="304"></line>
+      <line class="point-nature-03-ray" x1="938" y1="415.9" x2="810" y2="194.2"></line>
+      <line class="point-nature-03-ray" x1="960" y1="410" x2="960" y2="154"></line>
+      <line class="point-nature-03-ray" x1="982" y1="415.9" x2="1110" y2="194.2"></line>
+      <line class="point-nature-03-ray" x1="998.1" y1="432" x2="1219.8" y2="304"></line>
+
+      <!-- 3 equal-distance rings, d=1,2,3 -->
+      <circle class="point-nature-03-ring" id="point-nature-03-ring-1" cx="960" cy="454" r="120"></circle>
+      <circle class="point-nature-03-ring" id="point-nature-03-ring-2" cx="960" cy="454" r="200"></circle>
+      <circle class="point-nature-03-ring" id="point-nature-03-ring-3" cx="960" cy="454" r="280"></circle>
+
+      <!-- distance-marker objects, aligned on the 330deg ray -->
+      <g id="point-nature-03-node-1">
+        <circle class="point-nature-03-node-socket" cx="1063.9" cy="394" r="11"></circle>
+        <circle class="point-nature-03-node-fill" id="point-nature-03-node-fill-1" cx="1063.9" cy="394" r="8"></circle>
+      </g>
+      <g id="point-nature-03-node-2">
+        <circle class="point-nature-03-node-socket" cx="1133.2" cy="354" r="11"></circle>
+        <circle class="point-nature-03-node-fill" id="point-nature-03-node-fill-2" cx="1133.2" cy="354" r="8"></circle>
+      </g>
+      <g id="point-nature-03-node-3">
+        <circle class="point-nature-03-node-socket" cx="1202.5" cy="314" r="11"></circle>
+        <circle class="point-nature-03-node-fill" id="point-nature-03-node-fill-3" cx="1202.5" cy="314" r="8"></circle>
+      </g>
+
+      <!-- the point light source itself -->
+      <circle id="point-nature-03-center-dot" cx="960" cy="454" r="26" fill="#E85D26"></circle>
+    </svg>
+
+    <div class="point-nature-03-dist-label" id="point-nature-03-label-d1" style="left: 1082px; top: 366px;">d = 1</div>
+    <div class="point-nature-03-dist-label" id="point-nature-03-label-d2" style="left: 1151px; top: 326px;">d = 2</div>
+    <div class="point-nature-03-dist-label" id="point-nature-03-label-d3" style="left: 1220px; top: 286px;">d = 3</div>
+  </div>
+
+  <div id="point-nature-03-chip-wrap" class="clip" data-start="4.18" data-duration="13.078" data-track-index="3">
+    <div class="point-nature-03-chip" id="point-nature-03-chip">
+      <span class="point-nature-03-chip-text" id="point-nature-03-chip-text"></span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+  window.__timelines = window.__timelines || {};
+  const tl = gsap.timeline({ paused: true });
+
+  /* ================================================================
+     SETUP — measured stroke draws (never hard-coded lengths)
+     ================================================================ */
+  const rayEls = document.querySelectorAll(".point-nature-03-ray");
+  rayEls.forEach((r) => {
+    const len = r.getTotalLength();
+    r.style.strokeDasharray = String(len);
+    r.style.strokeDashoffset = String(len);
+  });
+
+  const ringEls = [
+    document.getElementById("point-nature-03-ring-1"),
+    document.getElementById("point-nature-03-ring-2"),
+    document.getElementById("point-nature-03-ring-3"),
+  ];
+  ringEls.forEach((ring) => {
+    const len = ring.getTotalLength();
+    ring.style.strokeDasharray = String(len);
+    ring.style.strokeDashoffset = String(len);
+  });
+
+  // Node fills start collapsed ("unlit") — GSAP fromTo grows them, never CSS-hidden alone.
+  // (transform-origin is pinned per-node in CSS above, not here, so it isn't overwritten.)
+  gsap.set(
+    ["#point-nature-03-node-fill-1", "#point-nature-03-node-fill-2", "#point-nature-03-node-fill-3"],
+    { scale: 0, opacity: 0 },
+  );
+
+  const centerDot = document.getElementById("point-nature-03-center-dot");
+  const glowEl = document.getElementById("point-nature-03-glow");
+
+  /* ================================================================
+     SCENE 1 (0.0 - 4.18s) — eyebrow + h3 per-word reveal; on the VO cue
+     ("一点から全方向に") the point ignites (ambient-glow-bloom) and
+     radiating rays self-draw outward (svg-path-draw, staggered).
+     ================================================================ */
+  const kickerWords = document.querySelectorAll(".point-nature-03-kicker-word");
+  tl.fromTo(
+    kickerWords,
+    { y: 10, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.37, ease: "power2.out", stagger: 0.08 },
+    0.06,
+  );
+  tl.fromTo(
+    "#point-nature-03-headline",
+    { y: 14, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.58, ease: "power3.out" },
+    0.64,
+  );
+
+  const GLOW_START = 1.86;
+  const GLOW_DUR = 0.81;
+  const GLOW_PEAK = 0.3;
+
+  tl.fromTo(
+    "#point-nature-03-glow",
+    { opacity: 0, scale: 0.82 },
+    { opacity: GLOW_PEAK, scale: 1, duration: GLOW_DUR, ease: "power2.out" },
+    GLOW_START,
+  );
+  tl.fromTo(
+    centerDot,
+    { opacity: 0.12, scale: 0.6, svgOrigin: "960 454" },
+    { opacity: 1, scale: 1, svgOrigin: "960 454", duration: GLOW_DUR, ease: "power2.out" },
+    GLOW_START,
+  );
+
+  const RAYS_START = 2.03;
+  tl.to(
+    ".point-nature-03-ray",
+    { strokeDashoffset: 0, duration: 0.58, ease: "power2.out", stagger: 0.06 },
+    RAYS_START,
+  );
+
+  /* ================================================================
+     SCENE 2 (4.18 - 8.35s) — the example chip enters once, then hard-cuts
+     its text between the three example words as the VO speaks them
+     (discrete-text-sequence: instant jumps, reverse-search by time).
+     ================================================================ */
+  tl.fromTo(
+    "#point-nature-03-chip",
+    { scale: 0.85, opacity: 0 },
+    { scale: 1, opacity: 1, duration: 0.46, ease: "back.out(1.4)" },
+    4.18,
+  );
+
+  const CHIP_SEQUENCE = [
+    { t: 4.18, text: "たいまつ" },
+    { t: 5.68, text: "ランプ" },
+    { t: 7.08, text: "マズルフラッシュ" },
+  ];
+  function chipTextAt(time) {
+    for (let i = CHIP_SEQUENCE.length - 1; i >= 0; i -= 1) {
+      if (time >= CHIP_SEQUENCE[i].t) return CHIP_SEQUENCE[i].text;
+    }
+    return "";
+  }
+  const chipTextEl = document.getElementById("point-nature-03-chip-text");
+  const chipDriver = { t: 4.18 };
+  tl.to(
+    chipDriver,
+    {
+      t: 7.31,
+      duration: 3.13,
+      ease: "none",
+      onUpdate: () => {
+        chipTextEl.textContent = chipTextAt(chipDriver.t);
+      },
+    },
+    4.18,
+  );
+  // Hard-cut swap pulse — a small bounded snap on each of the later word changes.
+  tl.to("#point-nature-03-chip-text", { scale: 1.06, duration: 0.17, yoyo: true, repeat: 1 }, 5.68);
+  tl.to("#point-nature-03-chip-text", { scale: 1.06, duration: 0.17, yoyo: true, repeat: 1 }, 7.08);
+
+  // Recede the chip once Scene 3 shifts focus to the rings (no hard exit — a quiet dim).
+  tl.to("#point-nature-03-chip", { opacity: 0.4, duration: 0.7, ease: "power1.out" }, 8.35);
+
+  /* ================================================================
+     SCENE 3 (8.35 - 14.27s) — equal-distance rings self-draw in order;
+     each ring's marker lights up (stat-bars-and-fills fill applied to
+     brightness), dimmer the farther out — attenuation, shown not told.
+     ================================================================ */
+  const RING_DUR = 0.7;
+  tl.to("#point-nature-03-ring-1", { strokeDashoffset: 0, duration: RING_DUR, ease: "power2.out" }, 8.58);
+  tl.fromTo(
+    "#point-nature-03-node-fill-1",
+    { scale: 0, opacity: 0 },
+    { scale: 1, opacity: 1.0, duration: 0.41, ease: "back.out(1.3)" },
+    9.16,
+  );
+  tl.fromTo("#point-nature-03-label-d1", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power1.out" }, 9.16);
+
+  tl.to("#point-nature-03-ring-2", { strokeDashoffset: 0, duration: RING_DUR, ease: "power2.out" }, 9.86);
+  tl.fromTo(
+    "#point-nature-03-node-fill-2",
+    { scale: 0, opacity: 0 },
+    { scale: 1, opacity: 0.55, duration: 0.41, ease: "back.out(1.3)" },
+    10.44,
+  );
+  tl.fromTo("#point-nature-03-label-d2", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power1.out" }, 10.44);
+
+  tl.to("#point-nature-03-ring-3", { strokeDashoffset: 0, duration: RING_DUR, ease: "power2.out" }, 11.14);
+  tl.fromTo(
+    "#point-nature-03-node-fill-3",
+    { scale: 0, opacity: 0 },
+    { scale: 1, opacity: 0.22, duration: 0.41, ease: "back.out(1.3)" },
+    11.72,
+  );
+  tl.fromTo("#point-nature-03-label-d3", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: "power1.out" }, 11.72);
+
+  /* ================================================================
+     SCENE 4 (14.27 - 17.258s) — hold: only the center glow's residual
+     breathe and a subtle jitter on the point (bounded, finite, seek-safe).
+     Final hold extends to the padded root (17.258s) — no exit tween.
+     ================================================================ */
+  const BREATHE_START = 14.27;
+  const BREATHE_DUR = 17.258 - BREATHE_START;
+  const OPACITY_AMP = 0.03;
+  const SCALE_AMP = 0.015;
+  const JITTER_AMP_X = 2.2;
+  const JITTER_AMP_Y = 1.6;
+
+  const holdPhase = { p: 0 };
+  tl.to(
+    holdPhase,
+    {
+      p: Math.PI * 2 * 0.85,
+      duration: BREATHE_DUR,
+      ease: "none",
+      onUpdate: () => {
+        const s = Math.sin(holdPhase.p);
+        glowEl.style.opacity = String(GLOW_PEAK + s * OPACITY_AMP);
+        glowEl.style.transform = `scale(${1 + s * SCALE_AMP})`;
+
+        const localT = holdPhase.p; // monotonic proxy for elapsed hold time
+        const jx = Math.sin(localT * 1.7) * JITTER_AMP_X;
+        const jy = Math.cos(localT * 1.3) * JITTER_AMP_Y;
+        gsap.set(centerDot, { x: jx, y: jy });
+      },
+    },
+    BREATHE_START,
+  );
+
+  window.__timelines["03-point-nature"] = tl;
+</script>
+</template>

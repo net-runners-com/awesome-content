@@ -1,0 +1,46 @@
+<meta charset="utf-8">
+<title>Emerald Sea Shader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root { --ink: #071A2E; --paper: #F1F7FA; --dim: #9FC3D6; --line: rgba(241,247,250,.18); --panel: rgba(7,26,46,.62); --accent: #5FF2D2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif; overflow: hidden; }
+  #c { display: block; width: 100vw; height: 100vh; }
+  .top { position: fixed; left: 24px; top: 22px; right: 24px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; gap: 16px; }
+  .eyebrow { font: 500 11px/1 "DM Mono", monospace; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+  h1 { margin: 6px 0 0; font: 700 clamp(22px, 3vw, 32px)/1.05 "Zen Kaku Gothic New", sans-serif; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
+  .desc { font: 400 11.5px/1.6 "DM Mono", monospace; color: var(--paper); max-width: 46ch; text-align: right; text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+  .desc b { color: var(--accent); font-weight: 500; }
+  .panel { position: fixed; right: 24px; bottom: 24px; width: 300px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .panel h2 { margin: 0 0 2px; font: 700 13px/1.2 "Zen Kaku Gothic New", sans-serif; }
+  label { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px; font: 400 11px "DM Mono", monospace; color: var(--dim); letter-spacing: .04em; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn { appearance: none; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--paper); font: 700 11px "Zen Kaku Gothic New", sans-serif; padding: 7px 11px; border-radius: 999px; }
+  .btn.on { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hint { position: fixed; left: 24px; bottom: 24px; font: 400 10.5px/1.7 "DM Mono", monospace; color: var(--paper); text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+</style>
+<canvas id="c"></canvas>
+<div class="top">
+  <div>
+    <div class="eyebrow">three.js · GLSL · stylized ocean</div>
+    <h1>Emerald Sea</h1>
+  </div>
+  <div class="desc">原神の海の構成要素をGLSLで再構築（コードは全て自作）。<b>深度差</b>で水層の厚さ → エメラルド→群青の吸収グラデ／<b>Gerstner波</b>の和／深度からの<b>岸の泡</b>（トゥーン帯）／段階化スペキュラ＋きらめき／シーンカラーの屈折で砂地が透ける</div>
+</div>
+<div class="panel">
+  <h2>Sea Controls</h2>
+  <label>WAVE <input id="wave" type="range" min="0" max="2" step="0.05" value="1"></label>
+  <label>FOAM DIST <input id="foam" type="range" min="0" max="8" step="0.1" value="3.5"></label>
+  <label>CLARITY <input id="clarity" type="range" min="0.05" max="0.6" step="0.01" value="0.22"></label>
+  <label>SUN <input id="sun" type="range" min="0.15" max="1.4" step="0.01" value="0.9"></label>
+  <div class="row">
+    <button class="btn on" id="orbit">自動回転</button>
+    <button class="btn on" id="caustics">コースティクス</button>
+    <button class="btn" id="debug">深度デバッグ</button>
+  </div>
+</div>
+<div class="hint">ドラッグで回転 · ホイールでズーム · 参照: Gensin-Sea(考え方のみ) / GarrettGunnell sum-of-sines / ToonWaterShader の岸フォーム</div>
+<script>/*__BUNDLE__*/</script>
